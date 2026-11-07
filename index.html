@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bridge Made Easy: Learn to Play Bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --baize:#1d4e3c; --baize-d:#143a2c; --baize-l:#2a6650;
+  --ivory:#f7f2e6; --paper:#fffcf5; --ink:#23201c; --muted:#6a6259;
+  --mahog:#5b2a22; --brass:#c39a4a; --brass-d:#8f6c2a; --brass-l:#f0d58f;
+  --line:#e2d7c2; --red:#b3261e; --blk:#1c2430; --good:#2c7a4b; --soft:#b5482f;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#d9cfbd;font-family:'Nunito Sans',system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
+#stage{width:800px;height:1100px;flex:none;position:relative;background:var(--ivory);transform-origin:center center;border-radius:20px;overflow:hidden;box-shadow:0 12px 40px rgba(50,30,15,.25)}
+.red{color:var(--red)} .blk{color:var(--blk)}
+button{font-family:inherit}
+.btn{font-weight:800;font-size:24px;border:none;border-radius:14px;min-height:64px;padding:0 22px;cursor:pointer;background:var(--paper);color:var(--ink);box-shadow:inset 0 0 0 2px var(--line),0 3px 0 var(--line)}
+.btn.primary{background:var(--mahog);color:#fff;box-shadow:0 4px 0 #3a1813}
+.btn.brass{background:var(--brass);color:#fff;box-shadow:0 4px 0 var(--brass-d)}
+.btn:disabled{opacity:.38;cursor:default}
+.btn:not(:disabled):active{transform:translateY(3px);box-shadow:none}
+.btn:focus-visible,.card:focus-visible,.tile:focus-visible{outline:4px solid var(--brass);outline-offset:2px}
+
+/* header */
+header{position:absolute;top:0;left:0;right:0;height:76px;background:var(--baize-d);display:flex;align-items:center;gap:10px;padding:0 14px;color:var(--ivory)}
+header .title{flex:1;font-family:'Playfair Display',Georgia,serif;font-size:31px;font-weight:700;letter-spacing:.3px;text-align:center}
+header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;background:rgba(255,255,255,.1);color:var(--ivory);box-shadow:inset 0 0 0 2px rgba(255,255,255,.18)}
+
+.screen{position:absolute;left:0;right:0;top:76px;bottom:0;display:none;flex-direction:column}
+.screen.on{display:flex}
+
+/* home */
+#scrHome{padding:26px 36px 20px;align-items:stretch}
+.hero{text-align:center;padding:8px 0 22px}
+.hero .suitrow{font-size:46px;letter-spacing:18px;color:var(--blk);line-height:1}
+.hero h1{font-family:'Playfair Display',Georgia,serif;font-size:50px;line-height:1.1;margin:14px 0 10px;color:var(--baize-d)}
+.hero p{font-size:24px;line-height:1.45;color:var(--muted);max-width:640px;margin:0 auto}
+#lessonGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tile{position:relative;background:var(--paper);border:none;border-radius:16px;box-shadow:inset 0 0 0 2px var(--line),0 3px 0 var(--line);text-align:left;padding:16px 18px 14px 84px;min-height:122px;cursor:pointer;color:var(--ink)}
+.tile .num{position:absolute;left:18px;top:20px;width:50px;height:50px;border-radius:50%;background:var(--baize);color:var(--ivory);font-family:'Playfair Display',serif;font-size:27px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.tile.done .num{background:var(--brass)}
+.tile .tt{font-size:25px;font-weight:800;line-height:1.2}
+.tile .ts{font-size:19px;color:var(--muted);margin-top:4px;line-height:1.3}
+.tile .ck{position:absolute;right:14px;top:12px;font-size:24px;color:var(--good);font-weight:800}
+#practiceBtn{margin-top:22px;min-height:96px;font-size:31px;border-radius:18px}
+#statsLine{text-align:center;font-size:21px;color:var(--muted);margin-top:16px;line-height:1.4}
+
+/* lesson */
+#scrLesson{padding:26px 40px 24px}
+.lsKicker{font-size:22px;font-weight:700;color:var(--brass-d)}
+#lsTitle{font-family:'Playfair Display',Georgia,serif;font-size:44px;color:var(--baize-d);line-height:1.15;margin:4px 0 18px}
+.sheet{flex:1;background:var(--paper);border-radius:18px;box-shadow:inset 0 0 0 2px var(--line);padding:30px 34px;display:flex;flex-direction:column;overflow:hidden}
+.sheet h3{font-family:'Playfair Display',Georgia,serif;font-size:32px;margin-bottom:16px;color:var(--ink)}
+.sheet p{font-size:27px;line-height:1.5;margin-bottom:16px}
+.sheet .ex{margin-top:auto;background:var(--ivory);border-radius:14px;padding:18px 22px;font-size:25px;line-height:1.55;border-left:6px solid var(--brass)}
+.sheet .ex b{font-weight:800}
+.dots{display:flex;justify-content:center;gap:12px;margin:18px 0}
+.dots i{width:14px;height:14px;border-radius:50%;background:var(--line)}
+.dots i.on{background:var(--baize)}
+.navRow{display:flex;gap:16px;justify-content:space-between}
+.navRow .btn{flex:1;min-height:78px;font-size:27px}
+
+/* exercise */
+#scrEx{padding:22px 34px 22px}
+.exHead{display:flex;justify-content:space-between;align-items:baseline;font-size:22px;color:var(--muted);font-weight:700}
+#exTitle{font-family:'Playfair Display',serif;font-size:30px;color:var(--baize-d)}
+.exPrompt{font-size:30px;font-weight:700;line-height:1.35;margin:16px 0 14px;min-height:84px}
+.chip{display:inline-block;background:var(--paper);border-radius:10px;padding:2px 14px;box-shadow:inset 0 0 0 2px var(--line);font-weight:800}
+.felt{background:radial-gradient(ellipse at 50% 40%,var(--baize-l),var(--baize) 70%);border-radius:18px}
+#exHandWrap{padding:12px 0 8px;margin:0 -8px}
+.exAnswer{margin-top:16px}
+.opts{display:grid;gap:12px}
+.opts.four{grid-template-columns:repeat(4,1fr)}
+.opts .btn{min-height:76px;font-size:25px;text-align:left;line-height:1.25;padding:10px 20px}
+.opts.four .btn{text-align:center;font-size:34px}
+.opts .btn.right{background:var(--good);color:#fff;box-shadow:0 4px 0 #1b5232}
+.opts .btn.wrong{background:var(--soft);color:#fff;box-shadow:0 4px 0 #7d2f1e}
+.results{text-align:center;padding:40px 10px}
+.results .big{font-family:'Playfair Display',serif;font-size:64px;color:var(--baize-d)}
+.results p{font-size:27px;line-height:1.5;color:var(--muted);margin-top:12px}
+.stack{display:flex;flex-direction:column;gap:14px;margin-top:30px}
+.stack .btn{min-height:80px;font-size:27px}
+
+/* coach box */
+.coach{background:var(--paper);border-radius:16px;box-shadow:inset 0 0 0 2px var(--line);padding:12px 18px;display:flex;gap:14px;align-items:flex-start;overflow:hidden}
+.coach .who{flex:none;width:52px;height:52px;border-radius:50%;background:var(--brass);color:#fff;font-family:'Playfair Display',serif;font-size:28px;font-weight:700;display:flex;align-items:center;justify-content:center;margin-top:2px}
+.coach .ctxt{flex:1;align-self:stretch;font-size:23px;line-height:1.38;overflow:hidden}
+.coach .ctxt b{font-weight:800}
+.coach.good{box-shadow:inset 0 0 0 3px var(--good)}
+.coach.warn{box-shadow:inset 0 0 0 3px var(--soft)}
+#exFeedback{margin-top:16px;height:170px}
+#exNextRow{margin-top:auto}
+
+/* cards */
+.handbox{position:relative;width:760px;height:142px;margin:0 auto}
+.card{position:absolute;top:8px;width:92px;height:130px;border-radius:10px;background:#fff;box-shadow:0 0 0 1.5px #cfc5b2,1px 2px 4px rgba(0,0,0,.25);transition:transform .15s ease}
+.card .ix{position:absolute;left:5px;top:4px;width:46px;display:flex;flex-direction:column;align-items:center;line-height:1}
+.card .rk{font-size:33px;font-weight:800;letter-spacing:-1px}
+.card .st{font-size:31px;margin-top:2px}
+.card .pip{position:absolute;right:9px;bottom:6px;font-size:54px;line-height:1}
+.card.back{background:repeating-linear-gradient(45deg,#7a2f2a 0 6px,#69261f 6px 12px);box-shadow:0 0 0 3px #fff inset,0 0 0 1.5px #cfc5b2,1px 2px 3px rgba(0,0,0,.25)}
+.card.small{width:60px;height:86px;top:30px}
+.card.playable{cursor:pointer}
+.card.playable:hover{transform:translateY(-10px)}
+.card.dim::after{content:"";position:absolute;inset:0;border-radius:10px;background:rgba(40,30,20,.38)}
+.card.suggest{transform:translateY(-16px);box-shadow:0 0 0 5px var(--brass-l),0 0 18px 4px rgba(240,213,143,.9)}
+.card.win{box-shadow:0 0 0 5px var(--brass-l),0 0 16px 3px rgba(240,213,143,.8)}
+
+/* table */
+#scrTable{background:var(--baize)}
+.tBar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:var(--baize-d);color:var(--ivory);font-size:22px;border-top:1px solid rgba(255,255,255,.08)}
+.tBar b{font-weight:800}
+.tBar .pill{background:var(--ivory);color:var(--ink);border-radius:9px;padding:1px 12px;font-weight:800}
+.seat{height:176px;display:flex;flex-direction:column;justify-content:center}
+.seatLabel{height:34px;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--ivory);font-size:22px;font-weight:700}
+.tag{background:rgba(255,255,255,.16);border-radius:8px;padding:0 10px;font-size:18px}
+.turn{background:var(--brass-l);color:var(--ink);border-radius:9px;padding:1px 12px;font-size:20px;font-weight:800}
+.middle{height:276px;display:flex;align-items:stretch;padding:0 10px}
+.side{width:120px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--ivory);gap:8px}
+.side .nm{font-size:22px;font-weight:800}
+.side .cnt{font-size:18px;opacity:.85}
+.side .backs{position:relative;width:70px;height:70px}
+.side .backs i{position:absolute;width:46px;height:64px;border-radius:6px;background:repeating-linear-gradient(45deg,#7a2f2a 0 5px,#69261f 5px 10px);box-shadow:0 0 0 2px #fff inset,0 1px 3px rgba(0,0,0,.4)}
+.center{flex:1;position:relative;border-radius:22px;background:rgba(0,0,0,.12);box-shadow:inset 0 0 0 2px rgba(255,255,255,.07)}
+.tslot{position:absolute}
+.tslot .card{position:relative;top:0}
+.tslot.N{left:50%;top:6px;margin-left:-46px}
+.tslot.S{left:50%;bottom:6px;margin-left:-46px}
+.tslot.W{left:34px;top:73px}
+.tslot.E{right:34px;top:73px}
+.tmsg{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;color:var(--ivory);font-size:22px;opacity:.85;padding:0 120px;line-height:1.35}
+.auction{position:absolute;inset:14px 18px;color:var(--ivory)}
+.auction table{width:100%;border-collapse:collapse;table-layout:fixed}
+.auction th{font-size:19px;font-weight:700;opacity:.8;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.2)}
+.auction td{text-align:center;font-size:27px;font-weight:700;height:40px}
+.auction .ns{color:#fff}
+.auction .ew{opacity:.6}
+.auction .q{display:inline-block;background:var(--brass-l);color:var(--ink);border-radius:8px;padding:0 12px}
+.auction .red{color:#ff9d93}
+.bottom{flex:1;background:var(--ivory);padding:12px 16px 14px;display:flex;flex-direction:column;gap:10px;border-radius:18px 18px 0 0}
+#tCoach{flex:1;min-height:0}
+.controls{display:flex;flex-direction:column;gap:8px}
+.crow{display:flex;gap:8px}
+.crow .btn{flex:1;min-height:62px;padding:0 6px}
+.bb{font-size:30px}
+.bb.sel{background:var(--baize);color:#fff;box-shadow:0 4px 0 var(--baize-d)}
+.bb.glow{box-shadow:0 0 0 4px var(--brass),0 0 14px 2px rgba(195,154,74,.8)}
+.bb .red{color:var(--red)}
+.bb.sel .red{color:#ffb3ab}
+.pass{background:#e6efe9;box-shadow:inset 0 0 0 2px #b9d1c3,0 3px 0 #b9d1c3}
+
+/* overlay */
+.overlay{position:absolute;inset:0;background:rgba(20,30,25,.62);display:none;align-items:center;justify-content:center;z-index:50;padding:30px}
+.overlay.on{display:flex}
+.modal{background:var(--paper);border-radius:22px;padding:34px 36px 30px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.35)}
+.modal h2{font-family:'Playfair Display',Georgia,serif;font-size:40px;color:var(--baize-d);margin-bottom:14px;line-height:1.15}
+.modal p{font-size:25px;line-height:1.5;margin-bottom:14px}
+.modal .stack{margin-top:22px}
+.cheat{font-size:21px;line-height:1.38}
+.cheat h4{font-size:22px;font-weight:800;color:var(--brass-d);margin:12px 0 4px}
+.cheat div{margin-left:4px}
+@media (prefers-reduced-motion:reduce){.card{transition:none}}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+  <header>
+    <button class="btn hb" id="homeBtn" aria-label="Home">⌂ Home</button>
+    <div class="title">Bridge Made Easy</div>
+    <button class="btn hb" id="helpBtn" aria-label="Bidding cheat sheet">?</button>
+    <button class="btn hb" id="soundBtn" aria-label="Sound on or off">🔊</button>
+  </header>
+
+  <section id="scrHome" class="screen on">
+    <div class="hero">
+      <div class="suitrow">♠<span class="red">♥</span><span class="red">♦</span>♣</div>
+      <h1>Learn to play bridge</h1>
+      <p>Standard American bidding, taught one step at a time. Short lessons first, then practice hands with a coach at your side.</p>
+    </div>
+    <div id="lessonGrid"></div>
+    <button id="practiceBtn" class="btn primary">Play a Practice Hand</button>
+    <div id="statsLine"></div>
+  </section>
+
+  <section id="scrLesson" class="screen">
+    <div class="lsKicker" id="lsKicker"></div>
+    <h2 id="lsTitle"></h2>
+    <div class="sheet" id="lsSheet"></div>
+    <div class="dots" id="lsDots"></div>
+    <div class="navRow"><button class="btn" id="lsBack">◀ Back</button><button class="btn primary" id="lsNext">Next ▶</button></div>
+  </section>
+
+  <section id="scrEx" class="screen">
+    <div class="exHead"><span id="exTitle"></span><span id="exProg"></span></div>
+    <div id="exBody" style="display:flex;flex-direction:column;flex:1">
+      <div class="exPrompt" id="exPrompt"></div>
+      <div id="exHandWrap" class="felt"><div class="handbox" id="exHand"></div></div>
+      <div class="exAnswer" id="exAnswer"></div>
+      <div class="coach" id="exFeedback" style="visibility:hidden"><div class="who">C</div><div class="ctxt"></div></div>
+      <div class="navRow" id="exNextRow"><button class="btn primary" id="exNext" disabled>Next ▶</button></div>
+    </div>
+  </section>
+
+  <section id="scrTable" class="screen">
+    <div class="tBar" id="tBar"></div>
+    <div class="seat"><div class="seatLabel" id="nLabel"></div><div class="handbox" id="nHand"></div></div>
+    <div class="middle"><div class="side" id="wBox"></div><div class="center" id="center"></div><div class="side" id="eBox"></div></div>
+    <div class="seat"><div class="handbox" id="sHand"></div><div class="seatLabel" id="sLabel"></div></div>
+    <div class="bottom">
+      <div class="coach" id="tCoach"><div class="who">C</div><div class="ctxt"></div></div>
+      <div class="controls" id="tControls"></div>
+    </div>
+  </section>
+
+  <div class="overlay" id="overlay"><div class="modal" id="modal"></div></div>
+</div></div>
+
+<script>
+// ENGINE START
+const SUITS=['C','D','H','S'];
+const STRAINS=['C','D','H','S','N'];
+const SYM={C:'♣',D:'♦',H:'♥',S:'♠',N:'NT'};
+const SNAME={C:'clubs',D:'diamonds',H:'hearts',S:'spades',N:'no trump'};
+const SEATS=['N','E','S','W'];
+const SEATNAME={N:'North',E:'East',S:'South',W:'West'};
+function rankStr(r){return r===14?'A':r===13?'K':r===12?'Q':r===11?'J':String(r);}
+function nextSeat(s){return SEATS[(SEATS.indexOf(s)+1)%4];}
+function partnerOf(s){return SEATS[(SEATS.indexOf(s)+2)%4];}
+function isNS(s){return s==='N'||s==='S';}
+function newDeck(){const d=[];for(const s of SUITS)for(let r=2;r<=14;r++)d.push({s,r});return d;}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function dealHands(){const d=shuffle(newDeck());const h={};SEATS.forEach((s,i)=>{h[s]=d.slice(i*13,i*13+13);});return h;}
+function hcp(h){let p=0;for(const c of h)if(c.r>10)p+=c.r-10;return p;}
+function lens(h){const L={C:0,D:0,H:0,S:0};for(const c of h)L[c.s]++;return L;}
+function lengthPts(h){const L=lens(h);let p=0;for(const s of SUITS)if(L[s]>4)p+=L[s]-4;return p;}
+function totalPts(h){return hcp(h)+lengthPts(h);}
+function isBalanced(h){const v=Object.values(lens(h)).sort((a,b)=>a-b);return v[0]>=2&&v[1]>=3;}
+function supportPts(h,trump){const L=lens(h);let p=hcp(h);for(const s of SUITS){if(s===trump)continue;if(L[s]===0)p+=5;else if(L[s]===1)p+=3;else if(L[s]===2)p+=1;}return p;}
+function isMajor(s){return s==='H'||s==='S';}
+function rankOf(s){return STRAINS.indexOf(s);}
+function bidVal(b){return (+b[0]-1)*5+rankOf(b[1]);}
+function bidText(b){if(b==='P')return 'Pass';return b[0]+(b[1]==='N'?'NT':SYM[b[1]]);}
+function cardTxt(c){return rankStr(c.r)+SYM[c.s];}
+function lastBid(a){for(let i=a.length-1;i>=0;i--)if(a[i].bid!=='P')return a[i].bid;return null;}
+function isLegal(bid,a){if(bid==='P')return true;const lb=lastBid(a);return !lb||bidVal(bid)>bidVal(lb);}
+function cheapestLevel(strain,after){for(let l=1;l<=7;l++){if(!after||bidVal(l+strain)>bidVal(after))return l;}return 8;}
+function auctionOver(a){if(a.length<3)return false;if(!a.slice(-3).every(x=>x.bid==='P'))return false;return a.some(x=>x.bid!=='P')||a.length>=4;}
+function getContract(a){const lb=lastBid(a);if(!lb)return null;let idx=-1;for(let i=a.length-1;i>=0;i--)if(a[i].bid!=='P'){idx=i;break;}
+  const side=a[idx].seat,strain=lb[1];let decl=side;
+  for(const x of a){if(x.bid!=='P'&&x.bid[1]===strain&&(x.seat===side||x.seat===partnerOf(side))){decl=x.seat;break;}}
+  return {level:+lb[0],strain,declarer:decl,bid:lb};}
+
+function R(bid,why,means){return {bid,why,means:means||''};}
+const PASS_DONE=()=>R('P','Your side has reached its contract. Pass.','Pass');
+
+function recommend(auction,seat,hand){
+  if(!isNS(seat))return R('P','The opponents stay quiet in practice hands.','Pass');
+  const ns=auction.filter(x=>isNS(x.seat));
+  const fi=ns.findIndex(x=>x.bid!=='P');
+  let r;
+  if(fi<0) r=openingBid(hand);
+  else{
+    const seq=ns.slice(fi).filter(x=>x.bid!=='P').map(x=>x.bid);
+    const role=ns[fi].seat===seat?'O':'R';
+    r=continueBid(seq,role,hand);
+  }
+  if(!isLegal(r.bid,auction)) r=R('P','There is no sensible higher bid to make, so pass.','Pass');
+  return r;
+}
+function continueBid(seq,role,h){
+  const o=seq[0];
+  if(seq.length>=6) return PASS_DONE();
+  if(o==='1N') return nt1(seq,role,h);
+  if(o==='2N') return nt2(seq,role,h);
+  if(o==='2C') return strong2c(seq,role,h);
+  return suit1(seq,role,h);
+}
+function openingSuit(L){
+  const five=SUITS.filter(s=>L[s]>=5);
+  if(five.length){let b=five[0];for(const s of five)if(L[s]>L[b]||(L[s]===L[b]&&rankOf(s)>rankOf(b)))b=s;return b;}
+  if(L.D>L.C)return 'D';if(L.C>L.D)return 'C';return L.D>=4?'D':'C';
+}
+function openingBid(h){
+  const H=hcp(h),T=totalPts(h),L=lens(h),bal=isBalanced(h);
+  if(bal&&H>=20&&H<=21) return R('2N',`You have ${H} high-card points and a balanced hand. Open 2NT, which shows 20–21 balanced.`,'20–21 points, balanced');
+  if(T>=22) return R('2C',`You have ${T} total points, a very strong hand. Open 2♣, the special bid for 22 or more points.`,'22+ points, very strong (artificial)');
+  if(bal&&H>=15&&H<=17) return R('1N',`You have ${H} high-card points and a balanced hand. Open 1NT, which shows exactly 15–17 balanced.`,'15–17 points, balanced');
+  if(T<13) return R('P',`You have ${T} total points. You need 13 to open, so pass.`,'Fewer than 13 points');
+  const s=openingSuit(L);let why;
+  if(isMajor(s)) why=`You have ${T} total points and ${L[s]} ${SNAME[s]}. With 13+ points and a 5-card major, open 1${SYM[s]}.`;
+  else if(L[s]>=5) why=`You have ${T} total points, and ${SNAME[s]} is your longest suit. Open 1${SYM[s]}.`;
+  else why=`You have ${T} total points but no 5-card major, so open your longer minor: 1${SYM[s]}.`+(L.C===L.D?(L.C===3?' With 3–3 in the minors, choose clubs.':' With 4–4 in the minors, choose diamonds.'):'');
+  return R('1'+s,why,isMajor(s)?`13+ points, 5+ ${SNAME[s]}`:`13+ points, 3+ ${SNAME[s]}`);
+}
+function suit1(seq,role,h){
+  const k=seq.length,o1=seq[0][1];
+  if(role==='R'&&k===1) return respond1(h,o1);
+  if(role==='O'&&k===2) return rebid1(h,o1,seq[1]);
+  if(role==='R'&&k===3) return resp2(h,o1,seq[1],seq[2]);
+  if(role==='O'&&k===4) return opener3(h,o1,seq[1],seq[2],seq[3]);
+  return PASS_DONE();
+}
+function ntResp(H,bal){
+  if(H<=10) return R('1N',`You have ${H} points and no suit you can show at the one level. Bid 1NT, which shows 6–10 points.`,'6–10 points, no fit');
+  if(H<=12) return R('2N',`You have ${H} points${bal?' and a balanced hand':''} with no major-suit fit or new suit to show. Bid 2NT: 11–12 points, inviting game.`,'11–12 points (invites game)');
+  return R('3N',`You have ${H} points. With partner's 13+, that's at least 26 together. Bid 3NT, a game.`,'13–15 points, balanced');
+}
+function respond1(h,o){
+  const H=hcp(h),L=lens(h),bal=isBalanced(h),ob='1'+SYM[o];
+  if(isMajor(o)&&L[o]>=3){
+    const sp=supportPts(h,o);
+    if(sp>=6){
+      if(sp<=9) return R('2'+o,`Partner opened ${ob} and you have ${L[o]} of them: a fit! You have ${sp} support points (high cards plus shortness), so raise to 2${SYM[o]}.`,`6–9 points, 3+ ${SNAME[o]}`);
+      if(sp<=12) return R('3'+o,`You have ${L[o]}-card support and ${sp} support points. With 10–12, raise to 3${SYM[o]}. Partner will bid game with more than a minimum.`,`10–12 points, 3+ ${SNAME[o]} (invites game)`);
+      return R('4'+o,`You have ${L[o]}-card support and ${sp} support points. With 13 or more, there's enough for game. Jump to 4${SYM[o]}.`,`13+ points, 3+ ${SNAME[o]}`);
+    }
+  }
+  if(H<6) return R('P',`You have only ${H} high-card points. With fewer than 6, pass partner's opening.`,'Fewer than 6 points');
+  const avail=['H','S'].filter(s=>rankOf(s)>rankOf(o)&&L[s]>=4);
+  if(avail.length){
+    let s=avail[0];
+    if(avail.length===2){s=L.S>L.H?'S':(L.H>L.S?'H':(L.S>=5?'S':'H'));}
+    return R('1'+s,`You have ${H} points and ${L[s]} ${SNAME[s]}. Show a 4-card or longer major at the one level: 1${SYM[s]}.`+(avail.length===2&&L.H===4&&L.S===4?' With four of each major, bid hearts first.':'')+' A new suit is forcing, so partner will bid again.',`6+ points, 4+ ${SNAME[s]}`);
+  }
+  if(o==='C'&&L.D>=4) return R('1D',`You have ${H} points and ${L.D} diamonds, with no 4-card major. Bid 1♦. A new suit at the one level shows 6+ points and is forcing.`,'6+ points, 4+ diamonds');
+  if(bal) return ntResp(H,true);
+  if(H>=10){
+    const c=SUITS.filter(s=>rankOf(s)<rankOf(o)&&L[s]>=(s==='H'?5:4));
+    if(c.length){let s=c[0];for(const x of c)if(L[x]>L[s]||(L[x]===L[s]&&rankOf(x)>rankOf(s)))s=x;
+      return R('2'+s,`You have ${H} points and ${L[s]} ${SNAME[s]}. A new suit at the two level needs 10+ points, so bid 2${SYM[s]}. It's forcing: partner will bid again.`,`10+ points, ${s==='H'?'5':'4'}+ ${SNAME[s]}`);}
+  }
+  if(!isMajor(o)&&L[o]>=5){
+    if(H<=10) return R('2'+o,`You have ${H} points and ${L[o]} ${SNAME[o]}, good support for partner's suit. Raise to 2${SYM[o]}.`,`6–10 points, 5+ ${SNAME[o]}`);
+    if(H<=12) return R('3'+o,`You have ${H} points and ${L[o]}-card ${SNAME[o]} support. With 11–12, jump to 3${SYM[o]} to invite game.`,`11–12 points, 5+ ${SNAME[o]}`);
+  }
+  return ntResp(H,false);
+}
+function secondSuit(L,o1,rs,higher){
+  const c=SUITS.filter(s=>s!==o1&&s!==rs&&L[s]>=4&&(higher?rankOf(s)>rankOf(o1):rankOf(s)<rankOf(o1)));
+  if(!c.length)return null;let b=c[0];for(const s of c)if(L[s]>L[b]||(L[s]===L[b]&&rankOf(s)>rankOf(b)))b=s;return b;
+}
+function rebid1(h,o1,r1){
+  const H=hcp(h),T=totalPts(h),L=lens(h),bal=isBalanced(h);
+  const rl=+r1[0],rs=r1[1];
+  if(rs===o1){
+    if(rl===2){
+      if(isMajor(o1)){
+        if(T<=15) return R('P',`Partner raised to ${bidText(r1)}, showing 6–9 points. With your ${T}, game is unlikely. Pass.`,'Minimum, passes');
+        if(T<=18) return R('3'+o1,`Partner has 6–9 points and you have ${T}. Game is possible, so invite with 3${SYM[o1]}. Partner bids game with the top of their range.`,'16–18 points, invites game');
+        return R('4'+o1,`You have ${T} points and partner has at least 6. That's enough for game: bid 4${SYM[o1]}.`,'19+ points, game');
+      }
+      if(T>=18) return R('3N',`Partner showed 6–10 points with ${SNAME[o1]} support. With your ${T} points, bid 3NT.`,'Enough for game');
+      return R('P',`Partner showed 6–10 points. With ${T}, game is unlikely, so pass.`,'Passes');
+    }
+    if(rl===3){
+      const acc=isMajor(o1)?'4'+o1:'3N';
+      if(T>=14) return R(acc,`Partner's ${bidText(r1)} shows 10–12 points. You have ${T}, more than a bare minimum, so accept: ${bidText(acc)}.`,'Accepts the invitation');
+      return R('P',`Partner's ${bidText(r1)} invites game. With a bare minimum of ${T} points, decline by passing.`,'Minimum, declines');
+    }
+    return R('P','Partner bid game. Pass.','Pass');
+  }
+  if(r1==='1N'){
+    if(bal){
+      if(H>=18) return R('2N',`Partner shows 6–10. With your ${H} points and a balanced hand, invite game with 2NT.`,'18–19 points, balanced');
+      return R('P',`Partner's 1NT shows 6–10 points. Your hand is balanced and game is unlikely, so pass.`,'Passes');
+    }
+    if(L[o1]>=6){
+      if(T>=19&&isMajor(o1)) return R('4'+o1,`You have ${T} points and a ${L[o1]}-card suit. Bid game in it: 4${SYM[o1]}.`,'19+ points, long suit');
+      if(T>=16) return R('3'+o1,`You have ${T} points and ${L[o1]} ${SNAME[o1]}. Jump to 3${SYM[o1]} to show extra strength and a long suit.`,`16–18 points, 6+ ${SNAME[o1]}`);
+      return R('2'+o1,`You have a minimum opening with ${L[o1]} ${SNAME[o1]}. Rebid your suit at the two level: 2${SYM[o1]}.`,`13–15 points, 6+ ${SNAME[o1]}`);
+    }
+    if(T>=19) return R('3N',`You have ${T} points and partner has 6–10, enough for game. Bid 3NT.`,'19+ points');
+    const s2=secondSuit(L,o1,null,false);
+    if(s2) return R('2'+s2,`Show your second suit: 2${SYM[s2]}. Partner can choose between your two suits.`,`4+ ${SNAME[s2]}`);
+    return R('2'+o1,`Rebid your suit at the two level: 2${SYM[o1]}.`,`Minimum, ${SNAME[o1]}`);
+  }
+  if(r1==='2N'){
+    if(T>=14) return R('3N',`Partner's 2NT shows 11–12 points. With ${T}, you have enough for game. Bid 3NT.`,'Accepts');
+    return R('P','Partner invited game with 2NT. With a bare minimum, pass.','Declines');
+  }
+  if(r1==='3N') return R('P','Partner bid game. Pass.','Pass');
+  if(rl===1){
+    if(isMajor(rs)&&L[rs]>=4){
+      if(T<=15) return R('2'+rs,`Partner bid ${bidText(r1)} and you have four ${SNAME[rs]}: a fit! With a minimum (${T} points), raise to 2${SYM[rs]}.`,`13–15 points, 4 ${SNAME[rs]}`);
+      if(T<=18) return R('3'+rs,`You have four ${SNAME[rs]} and ${T} points. Jump to 3${SYM[rs]} to show extra values.`,`16–18 points, 4 ${SNAME[rs]}`);
+      return R('4'+rs,`You have four ${SNAME[rs]} and ${T} points, enough for game. Bid 4${SYM[rs]}.`,`19+ points, 4 ${SNAME[rs]}`);
+    }
+    const up=['H','S'].filter(s=>s!==o1&&rankOf(s)>rankOf(rs)&&L[s]>=4);
+    if(up.length){const s=up[0];return R('1'+s,`Show your four ${SNAME[s]} at the one level: 1${SYM[s]}. Partner may have four too.`,`4+ ${SNAME[s]}`);}
+    if(bal){
+      if(H>=18) return R('2N',`You have ${H} points and a balanced hand. Jump to 2NT to show 18–19.`,'18–19 points, balanced');
+      return R('1N',`Your hand is balanced with ${H} points. Rebid 1NT to show a minimum balanced opening (12–14).`,'12–14 points, balanced');
+    }
+    if(L[o1]>=6){
+      if(T>=19) return isMajor(o1)?R('4'+o1,`You have ${T} points and a long suit. Bid game: 4${SYM[o1]}.`,'19+ points'):R('3N',`You have ${T} points. Bid game in 3NT.`,'19+ points');
+      if(T>=16) return R('3'+o1,`Jump to 3${SYM[o1]} to show ${L[o1]} ${SNAME[o1]} and 16–18 points.`,`16–18 points, 6+ ${SNAME[o1]}`);
+      return R('2'+o1,`Rebid your long suit at the two level: 2${SYM[o1]}, showing a minimum with 6+ cards.`,`13–15 points, 6+ ${SNAME[o1]}`);
+    }
+    const s2=secondSuit(L,o1,rs,false);
+    if(s2) return R('2'+s2,`Show your second suit: 2${SYM[s2]}.`,`4+ ${SNAME[s2]}`);
+    if(rs==='D'&&L.D>=4) return R(T>=16?'3D':'2D',`You have four diamonds, so support partner's suit: ${T>=16?'3♦':'2♦'}.`,'Diamond support');
+    if(T>=17){const s3=secondSuit(L,o1,rs,true);if(s3) return R('2'+s3,`With ${T} points you can show a higher second suit at the two level (called a "reverse"): 2${SYM[s3]}.`,`17+ points, 4+ ${SNAME[s3]}`);}
+    if(L[o1]>=5) return R('2'+o1,`Rebid your 5-card suit: 2${SYM[o1]}.`,`Minimum, 5+ ${SNAME[o1]}`);
+    return R('1N','With nothing else to show, rebid 1NT.','Minimum');
+  }
+  if(rl===2){
+    if(rs==='H'&&L.H>=3) return R(T>=16?'4H':'3H',`Partner's 2♥ shows 10+ points and five hearts. You have ${L.H}, so raise: ${T>=16?'4♥':'3♥'}.`,'Heart support');
+    if(!isMajor(rs)&&L[rs]>=4) return R('3'+rs,`Partner's 2${SYM[rs]} shows 10+ points. You have four ${SNAME[rs]}, so raise to 3${SYM[rs]}.`,`Support for ${SNAME[rs]}`);
+    if(bal) return H>=15?R('3N',`Your hand is balanced with ${H} points, and partner has 10+. Bid 3NT.`,'Game'):R('2N',`Your hand is balanced and minimum. Rebid 2NT.`,'Minimum, balanced');
+    if(L[o1]>=6) return R(T>=16?'3'+o1:'2'+o1,`Rebid your ${L[o1]}-card suit: ${T>=16?'3':'2'}${SYM[o1]}.`,`6+ ${SNAME[o1]}`);
+    const s2=SUITS.find(s=>s!==o1&&s!==rs&&L[s]>=4&&rankOf(s)>rankOf(rs)&&rankOf(s)<rankOf(o1));
+    if(s2) return R('2'+s2,`Show your second suit: 2${SYM[s2]}.`,`4+ ${SNAME[s2]}`);
+    if(L[o1]>=5) return R('2'+o1,`Rebid your 5-card suit: 2${SYM[o1]}.`,`5+ ${SNAME[o1]}`);
+    return R('2N','Rebid 2NT to show a minimum without a fit.','Minimum');
+  }
+  return PASS_DONE();
+}
+function openerRange(o1,r1,o2){
+  const l=+o2[0],s=o2[1],rl=+r1[0];
+  if(o2==='1N') return [12,14];
+  if(o2==='2N') return rl===1?[18,19]:[12,14];
+  if(o2==='3N') return [18,21];
+  if(s===o1||s===r1[1]){const j=l-cheapestLevel(s,r1);if(j<=0)return [13,15];if(j===1)return [16,18];return [19,21];}
+  return [13,17];
+}
+function resp2(h,o1,r1,o2){
+  const H=hcp(h),L=lens(h),rs=r1[1],os=o2[1],ol=+o2[0];
+  if(rs===o1){
+    if(isMajor(o1)&&o2==='3'+o1){const sp=supportPts(h,o1);
+      if(sp>=8) return R('4'+o1,`Partner invited game with 3${SYM[o1]}. You're at the top of your raise (${sp} support points), so accept: 4${SYM[o1]}.`,'Accepts');
+      return R('P',`Partner invited game, but your raise is a minimum (${sp} support points). Pass.`,'Declines');}
+    return PASS_DONE();
+  }
+  if(o2==='3N'||(isMajor(os)&&ol>=4)) return R('P','Partner has bid game. Pass.','Pass');
+  const [lo,hi]=openerRange(o1,r1,o2);
+  let fit=null;
+  if(isMajor(os)&&os===rs) fit=rs;
+  else if(isMajor(o1)&&L[o1]>=3) fit=o1;
+  else if(isMajor(o1)&&os===o1&&L[o1]>=2) fit=o1;
+  else if(isMajor(os)&&os!==o1&&L[os]>=4) fit=os;
+  else if(isMajor(rs)&&L[rs]>=6) fit=rs;
+  const Rp=!fit?H:(fit===rs&&os!==rs?H+lengthPts(h):supportPts(h,fit));
+  const strain=fit||'N';
+  const game=strain==='N'?'3N':'4'+strain, inv=strain==='N'?'2N':'3'+strain;
+  const legal=b=>bidVal(b)>bidVal(o2);
+  const t1=Rp+lo,t2=Rp+hi;
+  const fitTxt=fit?`a fit in ${SNAME[fit]}`:'no clear trump fit, so no trump';
+  const desc=`Partner's ${bidText(o2)} shows about ${lo}–${hi} points. You have ${Rp}, so together you hold ${t1}–${t2}`;
+  if(t1>=25){
+    if(!legal(game)) return R('P',`${desc}. You're already in a good contract. Pass.`,'Pass');
+    return R(game,`${desc}: enough for game, with ${fitTxt}. Bid ${bidText(game)}.`,'Game');
+  }
+  if(t2>=25){
+    if(legal(inv)) return R(inv,`${desc}. Game is possible if partner has extra values, so invite with ${bidText(inv)}.`,'Invites game');
+    if(Rp+(lo+hi)/2>=25&&legal(game)) return R(game,`${desc}. That should be enough for game: bid ${bidText(game)}.`,'Game');
+    return R('P',`${desc}. Game is unlikely, so pass.`,'Pass');
+  }
+  if(fit&&os!==fit){const l=cheapestLevel(fit,o2);if(l<=2) return R(l+fit,`${desc}, not enough for game. You have ${fitTxt}, so settle in ${bidText(l+fit)}.`,`Prefers ${SNAME[fit]}`);}
+  if(fit&&os===fit){
+    if(ol===1) return R('2'+fit,`Partner showed four ${SNAME[fit]} and so do you: a fit! With ${Rp} points, raise to 2${SYM[fit]}.`,`6–9 points, 4 ${SNAME[fit]}`);
+    return R('P',`${desc}, not enough for game, and you're in your fit. Pass.`,'Pass');
+  }
+  if(os!=='N'&&L[os]>=3) return R('P',`${desc}, not enough for game. You have ${L[os]} ${SNAME[os]}, so pass.`,'Pass');
+  if(os!=='N'&&os!==o1&&isMajor(o1)&&L[o1]>=2){const l=cheapestLevel(o1,o2);if(l<=2) return R(l+o1,`${desc}, not enough for game. Return to partner's first suit: ${bidText(l+o1)}.`,`Prefers ${SNAME[o1]}`);}
+  if(ol===1&&os!=='N') return R('1N',`${desc}, not enough for game, and there's no fit yet. Bid 1NT.`,'6–10 points, no fit');
+  return R('P',`${desc}, not enough for game. Pass.`,'Pass');
+}
+function opener3(h,o1,r1,o2,r2){
+  const T=totalPts(h);
+  const isInv=r2==='2N'||(+r2[0]===3&&isMajor(r2[1]));
+  if(!isInv) return R('P','Partner has chosen the contract. Pass.','Pass');
+  const [lo,hi]=openerRange(o1,r1,o2);
+  const mid=((25-hi)+(24-lo))/2;
+  const acc=r2[1]==='N'?'3N':'4'+r2[1];
+  if(T+mid>=25) return R(acc,`Partner invited game. You have ${T} points, at the top of what you've shown, so accept: ${bidText(acc)}.`,'Accepts');
+  return R('P',`Partner invited game, but you're at the bottom of your range (${T} points). Pass.`,'Declines');
+}
+function nt1(seq,role,h){
+  const k=seq.length,H=hcp(h),L=lens(h);
+  if(role==='R'&&k===1){
+    const five=L.H>=5||L.S>=5,four=L.H>=4||L.S>=4;
+    if(H<=7){
+      const c=['D','H','S'].filter(s=>L[s]>=5);
+      if(c.length){let s=c[0];for(const x of c)if(L[x]>L[s]||(L[x]===L[s]&&rankOf(x)>rankOf(s)))s=x;
+        return R('2'+s,`With only ${H} points, game is out of reach. But your ${L[s]} ${SNAME[s]} will play better than no trump, so bid 2${SYM[s]} to sign off. Partner will pass.`,`0–7 points, 5+ ${SNAME[s]} (sign-off)`);}
+      return R('P',`Partner has 15–17 and you have ${H}: at most 24 together, not enough for game. Pass.`,'0–7 points');
+    }
+    if(four&&!five) return R('2C',`You have ${H} points and a 4-card major. Bid 2♣ (Stayman) to ask whether partner also has a 4-card major.`,'Stayman: asks for a 4-card major');
+    if(five&&H>=10){const M=L.S>=L.H?'S':'H';
+      if(L[M]>=6) return R('4'+M,`You have ${H} points and ${L[M]} ${SNAME[M]}. Partner has at least two, so you have a fit and enough for game. Bid 4${SYM[M]}.`,`10–15 points, 6+ ${SNAME[M]}`);
+      return R('3'+M,`You have ${H} points and five ${SNAME[M]}. Bid 3${SYM[M]}: it asks partner to choose between 4${SYM[M]} and 3NT.`,`10+ points, 5 ${SNAME[M]} (forcing)`);}
+    if(H<=9) return R('2N',`Partner has 15–17 and you have ${H}: 23–26 together. Invite game with 2NT. Partner bids 3NT with a maximum.`,'8–9 points (invites game)');
+    return R('3N',`Partner has 15–17 and you have ${H}: at least 25 together. Bid 3NT, a game.`,'10–15 points');
+  }
+  if(role==='O'&&k===2){
+    const r=seq[1];
+    if(r==='2C'){
+      if(L.H>=4) return R('2H',`Partner bid Stayman. You have four hearts, so answer 2♥.`+(L.S>=4?' With both majors, show hearts first.':''),'4+ hearts');
+      if(L.S>=4) return R('2S','Partner bid Stayman. You have four spades, so answer 2♠.','4 spades');
+      return R('2D','Partner bid Stayman, but you have no 4-card major. Answer 2♦, which says "no."','No 4-card major');
+    }
+    if(r==='2N') return H>=16?R('3N',`Partner invited game. You have ${H}, not a minimum, so accept: 3NT.`,'Accepts'):R('P','Partner invited game. With a minimum 15, pass.','Declines');
+    if(r==='3H'||r==='3S'){const M=r[1];return L[M]>=3?R('4'+M,`Partner shows five ${SNAME[M]}. You have ${L[M]}, so there's an 8-card fit. Bid 4${SYM[M]}.`,`Chooses ${SNAME[M]}`):R('3N',`Partner shows five ${SNAME[M]}, but you have only two. Choose 3NT.`,'Chooses no trump');}
+    return R('P','Partner has placed the contract. Pass.','Pass');
+  }
+  if(role==='R'&&k===3){
+    if(seq[1]==='2C'){const M=seq[2][1];
+      if((M==='H'||M==='S')&&L[M]>=4) return H<=9?R('3'+M,`Partner has four ${SNAME[M]}, and so do you! With ${H} points, invite game with 3${SYM[M]}.`,'Invites game'):R('4'+M,`Partner has four ${SNAME[M]}, and so do you! With ${H} points, bid game: 4${SYM[M]}.`,'Game');
+      return H<=9?R('2N',`No major-suit fit. With ${H} points, invite game with 2NT.`,'Invites game'):R('3N',`No major-suit fit. With ${H} points, bid 3NT.`,'Game');}
+    return PASS_DONE();
+  }
+  if(role==='O'&&k===4){
+    const r2=seq[3];
+    if(r2==='2N'||r2==='3H'||r2==='3S'){const acc=r2==='2N'?'3N':'4'+r2[1];
+      return H>=16?R(acc,`Partner invited game. With ${H}, the top of your 1NT range, accept: ${bidText(acc)}.`,'Accepts'):R('P','Partner invited game. With a minimum, pass.','Declines');}
+    return PASS_DONE();
+  }
+  return PASS_DONE();
+}
+function nt2(seq,role,h){
+  const H=hcp(h),L=lens(h);
+  if(role==='R'&&seq.length===1){
+    if(H<=3) return R('P',`Partner has 20–21 and you have ${H}, short of the 25 needed for game. Pass.`,'0–3 points');
+    const M=L.S>=6?'S':(L.H>=6?'H':null);
+    if(M) return R('4'+M,`Partner has 20–21 and you have ${H} points with ${L[M]} ${SNAME[M]}. Bid game in your long suit: 4${SYM[M]}.`,'Game');
+    return R('3N',`Partner has 20–21 and you have ${H}, enough for game. Bid 3NT.`,'Game');
+  }
+  return PASS_DONE();
+}
+function strong2c(seq,role,h){
+  const k=seq.length,H=hcp(h),L=lens(h),bal=isBalanced(h);
+  if(role==='R'&&k===1) return R('2D',`Partner's 2♣ shows 22+ points and you must not pass. Bid 2♦, the "waiting" answer, and let partner describe their hand.`,'Waiting bid');
+  if(role==='O'&&k===2){
+    if(bal) return R('2N',`Your hand is balanced with ${H} points. Rebid 2NT to show 22–24 balanced.`,'22–24, balanced');
+    let s='S';for(const x of SUITS)if(L[x]>L[s]||(L[x]===L[s]&&rankOf(x)>rankOf(s)))s=x;
+    const b=(isMajor(s)?'2':'3')+s;
+    return R(b,`Show your long suit: ${bidText(b)}.`,`Long ${SNAME[s]}, 22+ points`);
+  }
+  if(role==='R'&&k===3){
+    const o2=seq[2],s=o2[1];
+    if(o2==='2N') return H>=3?R('3N',`Partner has 22–24 and you have ${H}: enough for game. Bid 3NT.`,'Game'):R('P',`Partner has 22–24 and you have only ${H}. Pass.`,'Pass');
+    if(isMajor(s)&&L[s]>=3) return R('4'+s,`Partner has long ${SNAME[s]} and you have ${L[s]}. Bid game: 4${SYM[s]}.`,'Game');
+    return R('3N','After a 2♣ opening, your side should reach game. Bid 3NT.','Game');
+  }
+  return PASS_DONE();
+}
+
+/* ---- card play ---- */
+function cardEq(a,b){return a.s===b.s&&a.r===b.r;}
+function sortHand(h){const o={S:0,H:1,C:2,D:3};return h.slice().sort((a,b)=>o[a.s]-o[b.s]||b.r-a.r);}
+function newPlay(hands,contract){
+  const lead=nextSeat(contract.declarer);
+  return {hands:{N:hands.N.slice(),E:hands.E.slice(),S:hands.S.slice(),W:hands.W.slice()},trump:contract.strain==='N'?null:contract.strain,
+    trick:[],leader:lead,turn:lead,tricks:{NS:0,EW:0},played:[],history:[],firstLeadSuit:null,done:false};
+}
+function legalCards(st,seat){const h=st.hands[seat];if(!st.trick.length)return h.slice();const ls=st.trick[0].card.s;const f=h.filter(c=>c.s===ls);return f.length?f:h.slice();}
+function trickWinner(trick,trump){let w=trick[0];for(const t of trick.slice(1)){const c=t.card,wc=w.card;if(c.s===wc.s){if(c.r>wc.r)w=t;}else if(trump&&c.s===trump)w=t;}return w;}
+function playCard(st,seat,card){
+  st.hands[seat]=st.hands[seat].filter(c=>!cardEq(c,card));
+  st.trick.push({seat,card});st.played.push(card);
+  if(!st.history.length&&st.trick.length===1)st.firstLeadSuit=card.s;
+  if(st.trick.length<4)st.turn=nextSeat(seat);
+}
+function finishTrick(st){
+  const w=trickWinner(st.trick,st.trump);
+  if(isNS(w.seat))st.tricks.NS++;else st.tricks.EW++;
+  st.history.push({cards:st.trick,winner:w.seat});st.trick=[];st.leader=w.seat;st.turn=w.seat;
+  if(st.history.length===13)st.done=true;return w;
+}
+function isMaster(card,st,own){
+  for(let r=card.r+1;r<=14;r++){
+    if(st.played.some(c=>c.s===card.s&&c.r===r))continue;
+    if(own.some(h=>h.some(c=>c.s===card.s&&c.r===r)))continue;
+    return false;
+  }return true;
+}
+function lowest(cs){return cs.reduce((a,b)=>b.r<a.r?b:a);}
+function highest(cs){return cs.reduce((a,b)=>b.r>a.r?b:a);}
+function bySuit(h){const b={C:[],D:[],H:[],S:[]};for(const c of h)b[c.s].push(c);for(const s of SUITS)b[s].sort((x,y)=>y.r-x.r);return b;}
+function openingLead(h,trump){
+  const by=bySuit(h);
+  let suits=SUITS.filter(s=>by[s].length&&s!==trump);if(!suits.length)suits=SUITS.filter(s=>by[s].length);
+  let best=null;
+  for(const s of suits){const c=by[s];if(c.length>=2&&c[0].r>=10&&c[1].r===c[0].r-1){if(!best||c[0].r>best.r)best=c[0];}}
+  if(best)return best;
+  let pool=suits;
+  if(trump){const ok=suits.filter(s=>!(by[s][0].r===14&&by[s].length>1));if(ok.length)pool=ok;}
+  let ls=pool[0];for(const s of pool)if(by[s].length>by[ls].length||(by[s].length===by[ls].length&&hcp(by[s])>hcp(by[ls])))ls=s;
+  const c=by[ls];if(c.length>=4)return c[3];if(c.length===2)return c[0];return c[c.length-1];
+}
+function followChoose(st,seat){
+  const legal=legalCards(st,seat),trump=st.trump,ls=st.trick[0].card.s;
+  const w=trickWinner(st.trick,trump),partnerWin=w.seat===partnerOf(seat);
+  const canFollow=st.hands[seat].some(c=>c.s===ls);
+  const beats=c=>trickWinner(st.trick.concat([{seat,card:c}]),trump).seat===seat;
+  const pos=st.trick.length;
+  if(canFollow){
+    if(partnerWin)return {card:lowest(legal),why:'partner'};
+    if(pos===1)return {card:lowest(legal),why:'second'};
+    const win=legal.filter(beats);
+    if(win.length)return {card:lowest(win),why:'win'};
+    return {card:lowest(legal),why:'cant'};
+  }
+  const trumps=trump?legal.filter(c=>c.s===trump):[];
+  if(!partnerWin&&trumps.length){const win=trumps.filter(beats);if(win.length)return {card:lowest(win),why:'ruff'};}
+  const nonT=legal.filter(c=>c.s!==trump);
+  return {card:lowest(nonT.length?nonT:legal),why:'discard'};
+}
+function defLead(st,seat){
+  const h=st.hands[seat],trump=st.trump;
+  const nonT=h.filter(c=>c.s!==trump),pool=nonT.length?nonT:h;
+  const masters=pool.filter(c=>isMaster(c,st,[h]));
+  if(masters.length)return highest(masters);
+  const pl=st.firstLeadSuit,pLead=st.history.length?st.history[0].cards[0].seat:null;
+  if(pLead===partnerOf(seat)&&pl!==trump){const cs=h.filter(c=>c.s===pl);if(cs.length)return cs.length<=2?highest(cs):lowest(cs);}
+  const by={};for(const c of pool)(by[c.s]=by[c.s]||[]).push(c);
+  let ls=null;for(const s in by)if(!ls||by[s].length>by[ls].length)ls=s;
+  return lowest(by[ls]);
+}
+function defenderChoose(st,seat){
+  if(!st.trick.length)return st.history.length?defLead(st,seat):openingLead(st.hands[seat],st.trump);
+  return followChoose(st,seat).card;
+}
+function outstandingTrumps(st){if(!st.trump)return 0;let n=13;n-=st.played.filter(c=>c.s===st.trump).length;n-=st.hands.N.filter(c=>c.s===st.trump).length+st.hands.S.filter(c=>c.s===st.trump).length;return n;}
+const FOLLOW_WHY={
+  partner:c=>`Your side is already winning this trick, so play low (${cardTxt(c)}) and save your high cards.`,
+  second:c=>`Second hand low: play your lowest ${SNAME[c.s].slice(0,-1)} (${cardTxt(c)}) and keep your high cards for later.`,
+  win:c=>`You can win this trick. Do it as cheaply as possible: ${cardTxt(c)}.`,
+  cant:c=>`You can't win this trick, so play your lowest card: ${cardTxt(c)}.`,
+  ruff:c=>`You're out of this suit, so trump it with ${cardTxt(c)}!`,
+  discard:c=>`You can't follow suit, so discard a low card you won't need: ${cardTxt(c)}.`
+};
+function declarerHint(st,seat){
+  const own=[st.hands.N,st.hands.S],h=st.hands[seat],pt=st.hands[partnerOf(seat)],trump=st.trump;
+  if(st.trick.length){const f=followChoose(st,seat);return {card:f.card,why:FOLLOW_WHY[f.why](f.card),kind:f.why};}
+  if(trump){
+    const out=outstandingTrumps(st),myT=h.filter(c=>c.s===trump);
+    if(out>0&&myT.length){
+      const mt=myT.filter(c=>isMaster(c,st,own));
+      if(mt.length){const c=highest(mt);return {card:c,why:`Draw trumps: the opponents still hold ${out} trump${out>1?'s':''}. Lead your top trump, ${cardTxt(c)}, so they can't ruff your winners.`};}
+      const c=lowest(myT);
+      return {card:c,why:pt.some(x=>x.s===trump&&isMaster(x,st,own))?`Draw trumps: lead a low trump (${cardTxt(c)}) over to partner's high trump.`:`Draw trumps: the opponents still hold ${out}. Lead ${cardTxt(c)} to start pulling them out.`};
+    }
+  }
+  let best=null;
+  for(const s of SUITS){
+    if(s===trump)continue;
+    const mine=h.filter(c=>c.s===s),his=pt.filter(c=>c.s===s);if(!mine.length)continue;
+    const myM=mine.filter(c=>isMaster(c,st,own)),hisM=his.filter(c=>isMaster(c,st,own));
+    let cand=null;
+    if(myM.length&&(mine.length<=his.length||!hisM.length))cand={card:highest(myM),score:mine.length<=his.length?3:2,why:`Cash a sure winner: ${cardTxt(highest(myM))}.`+(mine.length<=his.length&&his.length?' Play high from the short side first.':'')};
+    else if(hisM.length)cand={card:lowest(mine),score:2.5,why:`Lead a low ${SNAME[s].slice(0,-1)} (${cardTxt(lowest(mine))}) over to partner's winner. High from the short side first.`};
+    if(cand&&(!best||cand.score>best.score))best=cand;
+  }
+  if(best)return best;
+  let ls=null,bl=-Infinity;
+  for(const s of SUITS){const m=h.filter(c=>c.s===s).length;if(!m)continue;const tot=m+pt.filter(c=>c.s===s).length+(s===trump?-20:0);if(tot>bl){bl=tot;ls=s;}}
+  const c=lowest(h.filter(x=>x.s===ls));
+  return {card:c,why:`No sure winners to cash. Lead a low card from your longest suit (${cardTxt(c)}) to set up extra tricks.`};
+}
+function sureWinners(N,S){let t=0;for(const s of SUITS){const a=N.filter(c=>c.s===s),b=S.filter(c=>c.s===s),all=a.concat(b);let n=0;for(let r=14;r>=2;r--){if(all.some(c=>c.r===r))n++;else break;}t+=Math.min(n,Math.max(a.length,b.length));}return t;}
+
+/* ---- deal makers ---- */
+function makePracticeDeal(){
+  let h;
+  for(let t=0;t<5000;t++){
+    h=dealHands();let ns=hcp(h.N)+hcp(h.S),ew=hcp(h.E)+hcp(h.W);
+    if(ew>ns){const N=h.N,S=h.S;h.N=h.E;h.S=h.W;h.E=S;h.W=N;ns=ew;}
+    if(ns<20||ns>31)continue;
+    if(openingBid(h.N).bid==='P'&&openingBid(h.S).bid==='P')continue;
+    return h;
+  }return h;
+}
+function catOpen(b){if(b==='P')return 'P';if(b==='1N')return '1N';if(b==='2N'||b==='2C')return 'big';return isMajor(b[1])?'1M':'1m';}
+function genOpeningEx(cat){let last;for(let i=0;i<40000;i++){const h=dealHands().S;const r=openingBid(h);last={hand:h,ans:r};if(catOpen(r.bid)===cat)return last;}return last;}
+function catResp(o,b){if(b==='P')return 'P';if(b[1]===o[1])return 'raise';if(b==='1N')return '1N';if(b[1]==='N')return 'NT';return b[0]==='1'?'new1':'new2';}
+function genRespondEx(cat){let last=null;for(let i=0;i<40000;i++){const d=dealHands();const o=openingBid(d.N).bid;if(!/^1[CDHS]$/.test(o))continue;const r=respond1(d.S,o[1]);last={opening:o,hand:d.S,ans:r};if(catResp(o,r.bid)===cat)return last;}return last;}
+function catNT(b){if(b==='P')return 'P';if(b==='2C')return 'stay';if(b==='2N')return '2N';if(b==='3N')return '3N';if(b[0]==='2')return 'sign';return 'major';}
+function genNTEx(cat){let last=null;for(let i=0;i<40000;i++){const d=dealHands();if(openingBid(d.N).bid!=='1N')continue;const r=nt1(['1N'],'R',d.S);last={opening:'1N',hand:d.S,ans:r};if(catNT(r.bid)===cat)return last;}return last;}
+// ENGINE END
+
+/* ================= UI ================= */
+const $=id=>document.getElementById(id);
+const KEY='bridgeMadeEasy_v1';
+function loadStore(){const d={lessons:{},hands:0,made:0,bidsRight:0,bidsTotal:0,seenIntro:false,sound:true};try{return Object.assign(d,JSON.parse(localStorage.getItem(KEY)||'{}'));}catch(e){return d;}}
+let store=loadStore();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(store));}catch(e){}}
+let gen=0;
+function later(fn,ms){const g=gen;setTimeout(()=>{if(g===gen)fn();},ms);}
+let playTimer=null,auctionTimer=null;
+function schedPlay(ms){clearTimeout(playTimer);const g=gen;playTimer=setTimeout(()=>{if(g===gen)stepPlay();},ms);}
+function schedAuction(ms){clearTimeout(auctionTimer);const g=gen;auctionTimer=setTimeout(()=>{if(g===gen)stepAuction();},ms);}
+function colorize(t){return String(t).replace(/[♥♦]/g,m=>`<span class="red">${m}</span>`);}
+
+/* sound */
+let AC=null;
+function ac(){if(!AC){try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return null;}}if(AC.state==='suspended')AC.resume();return AC;}
+function tone(f,d,o={}){if(!store.sound)return;const a=ac();if(!a)return;const t=a.currentTime+(o.delay||0);const os=a.createOscillator(),g=a.createGain();os.type=o.type||'sine';os.frequency.setValueAtTime(f,t);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(o.vol||0.05,t+0.015);g.gain.exponentialRampToValueAtTime(0.0001,t+d);os.connect(g).connect(a.destination);os.start(t);os.stop(t+d+0.05);}
+const sfx={
+  card:()=>{tone(380,0.08,{type:'triangle',vol:0.05});tone(190,0.12,{vol:0.03});},
+  tap:()=>tone(620,0.05,{type:'triangle',vol:0.03}),
+  bid:()=>tone(520,0.07,{vol:0.03}),
+  good:()=>{tone(659,0.16,{vol:0.05});tone(880,0.24,{vol:0.05,delay:0.11});},
+  soft:()=>tone(300,0.22,{vol:0.04}),
+  win:()=>[523,659,784,1047].forEach((f,i)=>tone(f,0.3,{vol:0.05,delay:i*0.12}))
+};
+function updateSoundBtn(){$('soundBtn').textContent=store.sound?'🔊':'🔇';}
+
+/* scale */
+function fit(){const s=Math.min(window.innerWidth/800,window.innerHeight/1100,1.35);$('stage').style.transform=`scale(${s})`;}
+window.addEventListener('resize',fit);
+
+function fitText(el,max){if(!el)return;let s=max||23;el.style.fontSize=s+'px';while(el.scrollHeight>el.clientHeight+1&&s>15){s-=1;el.style.fontSize=s+'px';}}
+function setCoach(box,html,kind,max){box.classList.remove('good','warn');if(kind)box.classList.add(kind);const t=box.querySelector('.ctxt');t.innerHTML=html;box.style.visibility='visible';fitText(t,max);}
+
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on',s.id===id));}
+
+/* cards */
+function cardEl(c,down){
+  const d=document.createElement('div');d.className='card';
+  if(down){d.classList.add('back');return d;}
+  d.classList.add(c.s==='H'||c.s==='D'?'red':'blk');
+  d.innerHTML=`<div class="ix"><span class="rk">${rankStr(c.r)}</span><span class="st">${SYM[c.s]}</span></div><div class="pip">${SYM[c.s]}</div>`;
+  d.setAttribute('aria-label',rankStr(c.r)+' of '+SNAME[c.s]);
+  return d;
+}
+function renderHand(el,cards,o={}){
+  el.innerHTML='';const n=cards.length;if(!n)return;
+  const small=!!o.faceDown,cw=small?60:92,W=760;
+  const step=n>1?Math.min(small?24:60,(W-cw)/(n-1)):0;
+  const start=(W-(cw+step*(n-1)))/2;
+  const legal=o.legal||null;
+  cards.forEach((c,i)=>{
+    const d=cardEl(c,small);if(small)d.classList.add('small');
+    d.style.left=(start+i*step)+'px';d.style.zIndex=i+1;
+    if(legal){
+      if(legal.some(x=>cardEq(x,c))){d.classList.add('playable');d.tabIndex=0;d.onclick=()=>o.onTap(c);d.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')o.onTap(c);};}
+      else{d.classList.add('dim');d.onclick=()=>o.onBad&&o.onBad(c);}
+    }
+    if(o.suggest&&cardEq(o.suggest,c))d.classList.add('suggest');
+    el.appendChild(d);
+  });
+}
+
+/* bidding box */
+function bidBox(el,opts){
+  el.innerHTML='';
+  const lb=opts.lastBid,en=opts.enabled,g=opts.glow;
+  const r1=document.createElement('div');r1.className='crow';
+  for(let l=1;l<=7;l++){
+    const b=document.createElement('button');b.className='btn bb';b.textContent=l;
+    b.disabled=!en||(lb&&bidVal(l+'N')<=bidVal(lb));
+    if(opts.level===l)b.classList.add('sel');
+    if(g&&g!=='P'&&+g[0]===l&&opts.level!==l)b.classList.add('glow');
+    b.onclick=()=>{sfx.tap();opts.level=l;bidBox(el,opts);};
+    r1.appendChild(b);
+  }
+  const r2=document.createElement('div');r2.className='crow';
+  for(const s of STRAINS){
+    const b=document.createElement('button');b.className='btn bb';
+    b.innerHTML=s==='N'?'NT':colorize(SYM[s]);
+    const bid=opts.level?opts.level+s:null;
+    b.disabled=!en||!bid||(lb&&bidVal(bid)<=bidVal(lb));
+    if(g&&g!=='P'&&g[1]===s&&opts.level===+g[0])b.classList.add('glow');
+    b.setAttribute('aria-label',s==='N'?'No trump':SNAME[s]);
+    b.onclick=()=>{const bd=opts.level+s;opts.level=null;opts.onBid(bd);};
+    r2.appendChild(b);
+  }
+  const r3=document.createElement('div');r3.className='crow';
+  const p=document.createElement('button');p.className='btn pass';p.textContent='Pass';p.disabled=!en;
+  if(g==='P')p.classList.add('glow');
+  p.onclick=()=>{opts.level=null;opts.onBid('P');};
+  r3.appendChild(p);
+  (opts.extra||[]).forEach(x=>r3.appendChild(x));
+  el.append(r1,r2,r3);
+}
+function mkBtn(label,cls,fn,dis){const b=document.createElement('button');b.className='btn '+(cls||'');b.innerHTML=label;b.onclick=fn;if(dis)b.disabled=true;return b;}
+
+/* overlay */
+function overlay(html,buttons){
+  const m=$('modal');m.innerHTML=html;
+  if(buttons&&buttons.length){const st=document.createElement('div');st.className='stack';buttons.forEach(b=>st.appendChild(mkBtn(b.label,b.cls,()=>{closeOverlay();b.fn&&b.fn();})));m.appendChild(st);}
+  $('overlay').classList.add('on');
+}
+function closeOverlay(){$('overlay').classList.remove('on');}
+
+/* ================= LESSONS ================= */
+function ex(lines){return `<div class="ex">${colorize(lines)}</div>`;}
+const LESSONS=[
+ {title:'How bridge works',blurb:'Partners, tricks and trumps',pages:[
+  {h:'A game of tricks',t:`<p>Bridge is a trick-taking game, much like Spades or Hearts. Four players sit as two partnerships: North and South against East and West.</p><p>You are South. Your partner sits across from you as North. Each player gets 13 cards, and every round of four cards is one trick, 13 tricks in all.</p>`},
+  {h:'Familiar rules',t:`<p>As in Spades, you must follow the suit that was led if you can. The highest card of that suit wins the trick, unless someone plays a trump.</p><p>The big difference: before any cards are played, there is an <b>auction</b>. The auction decides which suit is trump (or "no trump") and how many tricks your side promises to win.</p>`},
+  {h:'Reading a bid',t:`<p>Every bid counts from a base of six tricks, called the "book." So a bid of 1♥ promises 7 tricks with hearts as trump. 3NT promises 9 tricks with no trump suit.</p><p>Each bid must be higher than the last. At the same level, the order from low to high is ♣, ♦, ♥, ♠, then NT.</p>`,ex:`<b>1♠</b> = 6 + 1 = 7 tricks, spades trump<br><b>4♥</b> = 6 + 4 = 10 tricks, hearts trump`},
+  {h:'Declarer and dummy',t:`<p>The side that wins the auction tries to make its contract. One partner, the <b>declarer</b>, plays both hands. The other partner's cards go face-up on the table as the <b>dummy</b>.</p><p>The other side defends. In these practice hands, your side will always win the auction, and you'll play both your hand and North's.</p>`},
+  {h:'Aiming for game',t:`<p>Some contracts earn a big bonus called "game": 3NT (9 tricks), 4♥ or 4♠ (10 tricks), and 5♣ or 5♦ (11 tricks).</p><p>Most bidding is really a conversation with your partner: do we have enough strength for game, and which suit should be trump?</p>`}
+ ],exercise:{type:'quiz',items:[
+  {q:'A contract of 2♥ means your side must win how many tricks?',opts:['2 tricks','6 tricks','8 tricks','9 tricks'],a:2,why:'Add the bid to the book of six: 6 + 2 = 8 tricks.'},
+  {q:'Which bid is higher: 2♦ or 2♠?',opts:['2♦','2♠','They are equal'],a:1,why:'At the same level, suits rank ♣, ♦, ♥, ♠ from lowest to highest, so 2♠ is higher.'},
+  {q:'How many tricks does a 3NT contract need?',opts:['3 tricks','7 tricks','9 tricks','10 tricks'],a:2,why:'6 + 3 = 9 tricks, with no trump suit.'},
+  {q:'What is the "dummy"?',opts:['The player who leads first','Declarer\'s partner\'s hand, laid face-up','A card that can\'t win a trick','The lowest bid of the auction'],a:1,why:'After the opening lead, declarer\'s partner lays their hand face-up, and declarer plays it.'},
+  {q:'Which of these is a game contract?',opts:['2♠','3♥','3NT','4♦'],a:2,why:'Game is 3NT, 4♥, 4♠, 5♣ or 5♦. Of these, only 3NT is a game.'}
+ ]}},
+ {title:'Counting your points',blurb:'How strong is your hand?',pages:[
+  {h:'High-card points',t:`<p>Before you bid, count your hand's strength. Each high card is worth points:</p><p><b>Ace = 4 · King = 3 · Queen = 2 · Jack = 1</b></p><p>The whole deck holds 40 points, so an average hand has 10.</p>`,ex:`♠ A K 7 3 &nbsp; ♥ Q 8 5 &nbsp; ♦ J 9 4 &nbsp; ♣ 6 3 2<br>Ace 4 + King 3 + Queen 2 + Jack 1 = <b>10 points</b>`},
+  {h:'Length points',t:`<p>Long suits win extra tricks, so they count too. Add 1 length point for every card beyond four in a suit. A 5-card suit adds 1, and a 6-card suit adds 2.</p><p>High-card points plus length points give your <b>total points</b> for opening the bidding.</p>`,ex:`♠ K Q 10 8 6 4 &nbsp; ♥ A 5 &nbsp; ♦ K 7 3 &nbsp; ♣ 9<br>12 high-card points + 2 for six spades = <b>14 total</b>`},
+  {h:'Numbers to remember',t:`<p><b>13 points</b>: enough to open the bidding.</p><p><b>25 points</b> between you and your partner: usually enough for a game contract (3NT, 4♥ or 4♠).</p><p>You'll use these two numbers in almost every auction.</p>`}
+ ],exercise:{type:'points',n:5}},
+ {title:'Opening the bidding',blurb:'Your first bid',pages:[
+  {h:'Do I open?',t:`<p>The first player to make a real bid "opens" the bidding. Count your total points.</p><p>With fewer than 13, say <b>Pass</b>. With 13 to 21, you'll open with a bid at the one level.</p>`},
+  {h:'The 1NT opening',t:`<p>Open <b>1NT</b> with 15–17 high-card points and a balanced hand: no void, no singleton, and no more than one doubleton.</p><p>1NT is a wonderful bid. It tells partner your strength and shape in a single step.</p>`,ex:`♠ K Q 4 &nbsp; ♥ A J 7 2 &nbsp; ♦ K 10 5 &nbsp; ♣ Q 8 3<br>16 points, balanced: <b>open 1NT</b>`},
+  {h:'Opening a major',t:`<p>Otherwise, open your longest suit. To open a major suit (♥ or ♠) you need at least <b>five</b> cards in it.</p><p>With two 5-card suits, open the higher-ranking one.</p>`,ex:`♠ A Q 9 6 3 &nbsp; ♥ K 4 &nbsp; ♦ Q J 8 &nbsp; ♣ 7 5 2<br>13 total points, five spades: <b>open 1♠</b>`},
+  {h:'Opening a minor',t:`<p>With no 5-card major, open your longer minor suit, ♣ or ♦. It may have only three or four cards.</p><p>With three of each minor, open 1♣. With four of each, open 1♦.</p>`},
+  {h:'Very strong hands',t:`<p>With 20–21 points and a balanced hand, open <b>2NT</b>.</p><p>With 22 or more points, open <b>2♣</b>. This is a special signal. It says "I'm very strong," not "I like clubs," and partner must keep bidding.</p>`}
+ ],exercise:{type:'open',cats:['1M','1m','1N','P','1M','big']}},
+ {title:'Answering partner',blurb:'Responding to 1 of a suit',pages:[
+  {h:'Should I respond?',t:`<p>When partner opens 1 of a suit, they have 13 or more points. If you have <b>6 or more</b>, you should bid. With fewer than 6, pass.</p><p>Your job now is to find a trump fit and decide how high to go.</p>`},
+  {h:'Supporting a major',t:`<p>If partner opens 1♥ or 1♠ and you hold three or more cards in that suit, you've found a fit. Count <b>support points</b>: high cards plus 5 for a void, 3 for a singleton, 1 for a doubleton.</p><p>6–9: raise to 2. &nbsp;10–12: raise to 3. &nbsp;13 or more: jump to 4, a game.</p>`},
+  {h:'Showing a new suit',t:`<p>No fit yet? Show a 4-card or longer major at the one level, with 6+ points. With four hearts and four spades, bid hearts first.</p><p>A new suit at the two level needs <b>10+ points</b>. Any new suit you bid is forcing: partner must bid again.</p>`},
+  {h:'No-trump answers',t:`<p>With nothing else to say, bid no trump:</p><p><b>1NT</b> shows 6–10 points.<br><b>2NT</b> shows 11–12 and invites game.<br><b>3NT</b> shows 13–15, enough for game.</p>`}
+ ],exercise:{type:'respond',cats:['raise','new1','1N','P','new2','raise']}},
+ {title:'Answering 1NT',blurb:'Responding to partner\'s 1NT',pages:[
+  {h:'You are the captain',t:`<p>Partner's 1NT shows 15–17 points and a balanced hand. Add your points to theirs: if you have at least 25 together, bid game.</p><p>Since you know so much about partner's hand, you get to steer the auction.</p>`},
+  {h:'Weak hands',t:`<p>With <b>0–7 points</b>, game is out of reach. Pass.</p><p>But if you have a 5-card or longer suit other than clubs, bid 2 of it instead. Your long suit will play better than no trump, and partner will pass.</p>`},
+  {h:'Invite or bid game',t:`<p><b>8–9 points:</b> bid 2NT to invite game. Partner bids 3NT with a maximum.</p><p><b>10–15 points:</b> bid 3NT.</p><p>With a 5-card major and 10+, bid 3 of it so partner can choose. With a 6-card major and 10+, bid game in it.</p>`},
+  {h:'Stayman',t:`<p>With 8+ points and a 4-card major (but no 5-card major), bid <b>2♣</b>. This asks, "Do you have a 4-card major?"</p><p>Partner answers 2♥, 2♠, or 2♦ for "no." If you match, raise the major. If not, bid no trump.</p>`}
+ ],exercise:{type:'nt',cats:['P','stay','3N','2N','sign','major']}},
+ {title:'Playing the hand',blurb:'Declarer play basics',pages:[
+  {h:'Make a plan',t:`<p>Before you play to the first trick, stop and plan. In no trump, count your sure winners: Aces, and other top cards that are sure to win.</p><p>If you need more, look for extra tricks in your longest suit.</p>`},
+  {h:'Draw trumps',t:`<p>In a trump contract, lead trumps early, again and again, until the opponents have none left. That way they can't trump (ruff) your winners.</p><p>Then cash your winners in the other suits.</p>`},
+  {h:'High from the short side',t:`<p>When one hand is shorter in a suit, play its high cards first.</p><p>That way you never get stuck in the wrong hand with winners you can't reach.</p>`,ex:`North: ♠ A K &nbsp; &nbsp; South: ♠ Q J 5 4<br>Play the ♠A and ♠K first, then the ♠Q and ♠J`},
+  {h:'Finesses and defense',t:`<p>A <b>finesse</b> means leading toward a card you hope will win. With ♥A Q in dummy, lead a low heart from your hand. If West has the King, your Queen wins.</p><p>Defenders follow two old sayings: "second hand low" and "third hand high."</p>`}
+ ],exercise:{type:'quiz',items:[
+  {q:'Hearts are trump. The trick is ♠K, ♠A, ♥2, ♠Q. Which card wins?',opts:['♠K','♠A','♥2','♠Q'],a:2,why:'The ♥2 is a trump, and any trump beats every card of another suit.'},
+  {q:'No trump. West leads ♦5, North plays ♦K, East plays ♦A, and South (out of diamonds) plays ♣A. Who wins?',opts:['West','North','East','South'],a:2,why:'With no trump suit, only diamonds can win. East\'s ♦A is the highest diamond.'},
+  {q:'In a trump contract, what should declarer usually do early?',opts:['Cash every Ace first','Draw the opponents\' trumps','Save all trumps for the end','Lead from the shortest suit'],a:1,why:'Drawing trumps stops the opponents from ruffing your winners.'},
+  {q:'North holds ♠A K and South holds ♠Q J 5 4. Which spades should you play first?',opts:['The ♠A and ♠K','The ♠Q and ♠J','A low spade from South','It doesn\'t matter'],a:0,why:'Play high cards from the short side first, so you don\'t get stuck in the wrong hand.'}
+ ]}}
+];
+
+/* home */
+function renderHome(){
+  gen++;
+  const g=$('lessonGrid');g.innerHTML='';
+  LESSONS.forEach((L,i)=>{
+    const done=!!store.lessons[i+1];
+    const b=document.createElement('button');b.className='tile'+(done?' done':'');
+    b.innerHTML=`<span class="num">${i+1}</span><div class="tt">${L.title}</div><div class="ts">${L.blurb}</div>${done?'<span class="ck">✓</span>':''}`;
+    b.onclick=()=>{sfx.tap();openLesson(i,0);};g.appendChild(b);
+  });
+  const lessonsDone=Object.keys(store.lessons).length;
+  let s=`Lessons finished: <b>${lessonsDone} of 6</b>`;
+  if(store.hands) s+=`<br>Practice hands played: <b>${store.hands}</b>, contracts made: <b>${store.made}</b>`;
+  $('statsLine').innerHTML=s;
+  show('scrHome');
+}
+
+/* lesson pages */
+let LS={i:0,p:0};
+function openLesson(i,p){
+  gen++;LS={i,p};const L=LESSONS[i],pg=L.pages[p];
+  $('lsKicker').textContent=`Lesson ${i+1} of 6`;
+  $('lsTitle').textContent=L.title;
+  $('lsSheet').innerHTML=`<h3>${pg.h}</h3>${colorize(pg.t)}${pg.ex?ex(pg.ex):''}`;
+  $('lsDots').innerHTML=L.pages.map((_,k)=>`<i class="${k===p?'on':''}"></i>`).join('');
+  $('lsBack').textContent=p===0?'◀ Home':'◀ Back';
+  $('lsNext').textContent=p===L.pages.length-1?'Practice ▶':'Next ▶';
+  show('scrLesson');
+}
+$('lsBack').onclick=()=>{sfx.tap();if(LS.p===0)renderHome();else openLesson(LS.i,LS.p-1);};
+$('lsNext').onclick=()=>{sfx.tap();const L=LESSONS[LS.i];if(LS.p<L.pages.length-1)openLesson(LS.i,LS.p+1);else startExercise(LS.i);};
+
+/* exercises */
+let EX=null;
+function startExercise(i){
+  gen++;const X=LESSONS[i].exercise;let items=[];
+  if(X.type==='quiz')items=X.items.map(q=>({kind:'quiz',...q}));
+  else if(X.type==='points'){for(let k=0;k<X.n;k++){const h=dealHands().S;items.push({kind:'points',hand:h});}}
+  else if(X.type==='open')items=shuffle(X.cats.slice()).map(c=>({kind:'bid',ctx:'open',...genOpeningEx(c)}));
+  else if(X.type==='respond')items=X.cats.map(c=>({kind:'bid',ctx:'respond',...genRespondEx(c)}));
+  else if(X.type==='nt')items=shuffle(X.cats.slice()).map(c=>({kind:'bid',ctx:'nt',...genNTEx(c)}));
+  if(X.type==='respond')items=shuffle(items);
+  EX={lesson:i,items,k:0,score:0};
+  show('scrEx');renderEx();
+}
+function honorBreakdown(h){
+  const parts=[];for(const c of sortHand(h))if(c.r>10)parts.push(`${cardTxt(c)} ${c.r-10}`);
+  return parts.length?parts.join(' + ')+` = <b>${hcp(h)}</b>`:'No high cards: <b>0</b>';
+}
+function renderEx(){
+  const it=EX.items[EX.k],L=LESSONS[EX.lesson];
+  $('exTitle').textContent=L.title;
+  $('exProg').textContent=`Question ${EX.k+1} of ${EX.items.length}`;
+  $('exBody').querySelector('.results')?.remove();
+  ['exPrompt','exAnswer','exFeedback','exNextRow'].forEach(id=>$(id).style.display='');
+  $('exFeedback').style.visibility='hidden';
+  $('exNext').disabled=true;
+  $('exNext').textContent=EX.k===EX.items.length-1?'See results ▶':'Next ▶';
+  const ans=$('exAnswer');ans.innerHTML='';
+  if(it.kind==='quiz'){
+    $('exHandWrap').style.display='none';
+    $('exPrompt').innerHTML=colorize(it.q);
+    const box=document.createElement('div');box.className='opts';
+    it.opts.forEach((o,j)=>{const b=mkBtn(colorize(o),'',()=>answerChoice(j,box));box.appendChild(b);});
+    ans.appendChild(box);
+  }else if(it.kind==='points'){
+    $('exHandWrap').style.display='';
+    renderHand($('exHand'),sortHand(it.hand));
+    $('exPrompt').innerHTML='How many <b>high-card points</b> are in this hand?';
+    const right=hcp(it.hand);const set=new Set([right]);
+    while(set.size<4){const d=right+[-3,-2,-1,1,2,3][Math.floor(Math.random()*6)];if(d>=0)set.add(d);}
+    it.opts=shuffle([...set]);it.a=it.opts.indexOf(right);
+    const box=document.createElement('div');box.className='opts four';
+    it.opts.forEach((o,j)=>box.appendChild(mkBtn(String(o),'',()=>answerChoice(j,box))));
+    ans.appendChild(box);
+  }else{
+    $('exHandWrap').style.display='';
+    renderHand($('exHand'),sortHand(it.hand));
+    const H=hcp(it.hand);
+    if(it.ctx==='open')$('exPrompt').innerHTML=`You're first to bid. What is your <b>opening bid</b>?`;
+    else $('exPrompt').innerHTML=`Partner opened <span class="chip">${colorize(bidText(it.opening))}</span>. What do you respond?`;
+    const bb=document.createElement('div');bb.className='controls';ans.appendChild(bb);
+    it.box={lastBid:it.opening||null,enabled:true,level:null,onBid:b=>answerBid(b,bb)};
+    bidBox(bb,it.box);
+  }
+}
+function answerChoice(j,box){
+  const it=EX.items[EX.k];if(it.done)return;it.done=true;
+  const btns=[...box.children];btns.forEach(b=>b.disabled=true);
+  btns[it.a].disabled=false;btns[it.a].classList.add('right');
+  const ok=j===it.a;
+  if(!ok){btns[j].disabled=false;btns[j].classList.add('wrong');}
+  if(ok){EX.score++;sfx.good();}else sfx.soft();
+  const why=it.kind==='points'?honorBreakdown(it.hand):colorize(it.why);
+  setCoach($('exFeedback'),(ok?'<b>Correct!</b> ':'<b>Not quite.</b> ')+why,ok?'good':'warn',24);
+  $('exNext').disabled=false;
+}
+function answerBid(b,bb){
+  const it=EX.items[EX.k];if(it.done)return;it.done=true;
+  const ok=b===it.ans.bid;
+  if(ok){EX.score++;sfx.good();}else sfx.soft();
+  it.box.enabled=false;it.box.glow=it.ans.bid;it.box.level=it.ans.bid==='P'?null:+it.ans.bid[0];bidBox(bb,it.box);
+  const msg=ok?`<b>Correct: ${colorize(bidText(b))}.</b> ${colorize(it.ans.why)}`:`<b>Not quite.</b> You bid ${colorize(bidText(b))}; the Standard American bid is <b>${colorize(bidText(it.ans.bid))}</b>. ${colorize(it.ans.why)}`;
+  setCoach($('exFeedback'),msg,ok?'good':'warn',23);
+  $('exNext').disabled=false;
+}
+$('exNext').onclick=()=>{sfx.tap();if(EX.k<EX.items.length-1){EX.k++;renderEx();}else showResults();};
+function showResults(){
+  const i=EX.lesson,n=EX.items.length;
+  store.lessons[i+1]=true;save();
+  ['exPrompt','exAnswer','exFeedback','exNextRow'].forEach(id=>$(id).style.display='none');
+  $('exHandWrap').style.display='none';
+  $('exProg').textContent='';
+  const r=document.createElement('div');r.className='results';
+  const msg=EX.score===n?'Perfect score. Well done!':EX.score>=n-1?'Very good work.':EX.score>=n/2?'A solid start. Practice makes perfect.':'Bridge takes practice. Try this lesson again any time.';
+  r.innerHTML=`<div class="big">${EX.score} of ${n}</div><p>${msg}</p>`;
+  const st=document.createElement('div');st.className='stack';
+  if(i<5)st.appendChild(mkBtn(`Next lesson: ${LESSONS[i+1].title} ▶`,'primary',()=>{sfx.tap();openLesson(i+1,0);}));
+  else st.appendChild(mkBtn('Play a Practice Hand ▶','primary',()=>{sfx.tap();startPractice();}));
+  st.appendChild(mkBtn('Try these questions again','',()=>{sfx.tap();startExercise(i);}));
+  st.appendChild(mkBtn('Back to Home','',()=>{sfx.tap();renderHome();}));
+  r.appendChild(st);
+  $('exBody').appendChild(r);
+  if(EX.score===n)sfx.win();
+}
+
+/* ================= PRACTICE TABLE ================= */
+let T=null;
+function startPractice(replay){
+  gen++;
+  const hands=replay&&T?T.orig:makePracticeDeal();
+  const dealer=replay&&T?T.dealer:SEATS[Math.floor(Math.random()*4)];
+  T={orig:hands,hands:{N:hands.N.slice(),E:hands.E.slice(),S:hands.S.slice(),W:hands.W.slice()},dealer,auction:[],turn:dealer,phase:'bid',contract:null,play:null,undo:[],suggest:null,glow:null,firstTry:true,revealed:false,busy:false,auto:false,watch:false,planShown:false,log:[],bbOpts:{level:null}};
+  show('scrTable');
+  coach(`New hand! ${SEATNAME[dealer]} deals and bids first. Your cards are at the bottom. Count your points while the bidding begins.`);
+  renderTable();
+  schedAuction(1100);
+}
+function coach(html,kind){setCoach($('tCoach'),colorize(html),kind,23);}
+function stepAuction(){
+  if(T.phase!=='bid')return;
+  if(auctionOver(T.auction)){endAuction();return;}
+  const seat=T.turn;
+  if(seat==='S'){T.firstTry=true;T.glow=null;userTurnMsg();renderTable();return;}
+  const r=recommend(T.auction,seat,T.hands[seat]);
+  T.auction.push({seat,bid:r.bid,means:r.means});sfx.bid();
+  T.turn=nextSeat(seat);renderTable();
+  schedAuction(T.turn==='S'?300:950);
+}
+function userTurnMsg(){
+  const H=hcp(T.hands.S),Tp=totalPts(T.hands.S);
+  const nb=T.auction.filter(a=>a.seat==='N');const last=nb[nb.length-1];
+  let m='';
+  if(last&&last.bid!=='P')m=`Partner bid <b>${bidText(last.bid)}</b>: ${last.means}. `;
+  else if(last)m='Partner passed. ';
+  else m='You are the first of your side to bid. ';
+  m+=`You have <b>${H}</b> high-card points${Tp>H?` (${Tp} with length)`:''}. What's your bid?`;
+  coach(m);
+}
+function userBid(b){
+  if(T.phase!=='bid'||T.turn!=='S')return;
+  clearTimeout(auctionTimer);
+  const r=recommend(T.auction,'S',T.hands.S);
+  if(b===r.bid){
+    if(T.firstTry)store.bidsRight++;store.bidsTotal++;save();
+    T.auction.push({seat:'S',bid:b,means:r.means});sfx.good();
+    coach(`<b>Good bid!</b> ${bidText(b)} says: ${r.means}.`,'good');
+    T.glow=null;T.turn=nextSeat('S');renderTable();
+    schedAuction(1200);
+  }else{
+    sfx.soft();T.firstTry=false;T.glow=r.bid;
+    coach(`<b>Not quite.</b> ${r.why} Tap <b>${bidText(r.bid)}</b> to continue.`,'warn');
+    renderTable();
+  }
+}
+function bidHint(){const r=recommend(T.auction,'S',T.hands.S);T.firstTry=false;T.glow=r.bid;coach(`<b>Hint:</b> ${r.why}`);renderTable();}
+function endAuction(){
+  const c=getContract(T.auction);T.contract=c;T.phase='ready';
+  T.play=newPlay(T.hands,c);
+  const need=c.level+6;
+  coach(`The bidding is over. Your side's contract is <b>${bidText(c.bid)}</b>, so you need <b>${need} tricks</b>. ${c.declarer==='S'?'You are declarer.':'North is declarer.'} You'll play both your hand and North's. ${SEATNAME[T.play.leader]} leads first.`);
+  renderTable();
+}
+function beginPlay(){sfx.tap();T.phase='play';renderTable();schedPlay(500);}
+function stepPlay(){
+  const P=T.play;if(T.phase!=='play')return;
+  if(P.done){endHand();return;}
+  const seat=P.turn;
+  if(isNS(seat)){
+    T.suggest=null;renderTable();
+    if(T.watch)watchStep(seat);
+    else if(T.auto)later(()=>{const h=declarerHint(P,seat);doPlay(seat,h.card);},450);
+    return;
+  }
+  doPlay(seat,defenderChoose(P,seat));
+}
+function doPlay(seat,card){
+  const P=T.play;playCard(P,seat,card);sfx.card();T.suggest=null;
+  if(!T.revealed){T.revealed=true;planMsg();}
+  if(P.trick.length===4){
+    T.busy=true;renderTable();
+    later(()=>{const w=finishTrick(P);T.busy=false;
+      if(!T.auto)coach(`${w.seat==='S'?'You win':w.seat==='N'?'North wins':SEATNAME[w.seat]+' wins'} the trick with ${cardTxt(w.card)}. Your side has ${P.tricks.NS} of the ${T.contract.level+6} tricks you need.`);
+      renderTable();schedPlay(300);},T.auto&&!T.watch?800:1400);
+  }else{renderTable();schedPlay(isNS(P.turn)?100:(T.auto&&!T.watch?400:850));}
+}
+function planMsg(){
+  const P=T.play,c=T.contract,need=c.level+6;
+  if(c.strain==='N'){const w=sureWinners(P.hands.N,P.hands.S);
+    coach(`North's cards are now face-up. <b>Make a plan:</b> you need ${need} tricks and have about <b>${w}</b> sure winners. ${w>=need?'Cash them carefully, high cards from the short side first.':'Look to set up extra tricks in your longest suit.'} Tap Hint any time.`);}
+  else{const ns=P.hands.N.concat(P.hands.S).filter(x=>x.s===c.strain).length;
+    coach(`North's cards are now face-up. <b>Make a plan:</b> ${SNAME[c.strain]} are trump. Your side holds ${ns}, so the opponents have ${13-ns-P.played.filter(x=>x.s===c.strain).length}. Draw their trumps early, then cash your winners.`);}
+}
+function tapCard(seat,card){
+  const P=T.play;if(T.phase!=='play'||T.busy||T.auto||P.turn!==seat)return;
+  clearTimeout(playTimer);
+  T.undo.push(JSON.stringify({play:P,revealed:T.revealed,logLen:T.log.length}));
+  const h=declarerHint(P,seat);
+  if(!cardEq(h.card,card)&&!sameValue(h.card,card,P)&&!(h.kind==='discard'&&card.r<10))
+    T.log.push({trick:P.history.length+1,seat,played:card,coach:h.card,why:h.why});
+  doPlay(seat,card);
+}
+function badCard(){const P=T.play;if(P.trick.length){coach(`You must follow suit: play a ${SNAME[P.trick[0].card.s].slice(0,-1)} if you have one.`,'warn');sfx.soft();}}
+function playHint(){const P=T.play;if(!isNS(P.turn)||T.busy)return;const h=declarerHint(P,P.turn);T.suggest=h.card;coach(`<b>Hint:</b> ${h.why}`);renderTable();}
+function undo(){
+  if(!T.undo.length||T.auto)return;gen++;
+  const s=JSON.parse(T.undo.pop());T.play=s.play;T.log.length=s.logLen;T.revealed=s.revealed;T.busy=false;T.suggest=null;
+  coach('Card taken back. Choose again.');renderTable();sfx.tap();
+}
+function finishForMe(){if(T.auto)return;T.auto=true;coach('The coach is playing out the rest of the hand…');renderTable();if(isNS(T.play.turn)&&!T.busy)schedPlay(0);}
+function sameValue(a,b,st){
+  if(a.s!==b.s)return false;const lo=Math.min(a.r,b.r),hi=Math.max(a.r,b.r);
+  for(let r=lo+1;r<hi;r++){if(!st.played.some(c=>c.s===a.s&&c.r===r)&&!st.hands.N.concat(st.hands.S).some(c=>c.s===a.s&&c.r===r))return false;}
+  return true;
+}
+function simulateCoach(){
+  const P=newPlay(T.orig,T.contract);
+  while(!P.done){const s=P.turn;const c=isNS(s)?declarerHint(P,s).card:defenderChoose(P,s);playCard(P,s,c);if(P.trick.length===4)finishTrick(P);}
+  return P.tricks.NS;
+}
+function endHand(){
+  const c=T.contract,P=T.play,need=c.level+6,got=P.tricks.NS;T.phase='done';renderTable();
+  if(T.watch){
+    sfx.good();
+    overlay(`<h2>That's the coach's way</h2><p>Using simple rules of thumb, the coach took <b>${got}</b> of the ${need} tricks needed in ${colorize(bidText(c.bid))}.</p><p>Try it yourself now, with the Hint button if you like.</p>`,
+      [{label:'Replay this hand myself',cls:'primary',fn:()=>startPractice(true)},{label:'Play another hand ▶',fn:()=>startPractice()},{label:'Back to Home',fn:renderHome}]);
+    return;
+  }
+  store.hands++;if(got>=need)store.made++;save();
+  T.result={got,need,coachGot:simulateCoach()};
+  if(got>=need)sfx.win();else sfx.soft();
+  resultsOverlay();
+}
+function resultsOverlay(){
+  const c=T.contract,{got,need,coachGot}=T.result,n=T.log.length,made=got>=need;
+  let h;
+  if(made){const over=got-need;h=`<h2>Contract made!</h2><p>You needed ${need} tricks in ${colorize(bidText(c.bid))} and took <b>${got}</b>${over?`, with ${over} extra (overtrick${over>1?'s':''})`:''}.</p>`;}
+  else{
+    h=`<h2>Down ${need-got}</h2><p>You took ${got} of the ${need} tricks you needed in ${colorize(bidText(c.bid))}.</p>`;
+    h+=coachGot>=need?`<p>Good news: this hand <b>can</b> be made. Playing the coach's way takes ${coachGot} tricks.</p>`
+      :`<p>This was a tough deal. Even the coach's way takes only ${coachGot} tricks, so don't be hard on yourself.</p>`;
+  }
+  if(n)h+=`<p>Your play differed from the coach's on <b>${n}</b> card${n>1?'s':''}.</p>`;
+  else if(!made)h+=`<p>You played every card just as the coach would have.</p>`;
+  const b=[];
+  if(!made){
+    if(n)b.push({label:'Review my play',cls:'primary',fn:()=>showReview(0)});
+    b.push({label:'Watch the coach play it',cls:n?'':'primary',fn:watchCoach});
+    b.push({label:'Replay this hand',fn:()=>startPractice(true)});
+    b.push({label:'Play another hand ▶',fn:()=>startPractice()});
+  }else{
+    b.push({label:'Play another hand ▶',cls:'primary',fn:()=>startPractice()});
+    if(n)b.push({label:'Review my play',fn:()=>showReview(0)});
+    b.push({label:'Replay this hand',fn:()=>startPractice(true)});
+  }
+  b.push({label:'Back to Home',fn:renderHome});
+  overlay(h,b);
+}
+function showReview(i){
+  const n=T.log.length,it=T.log[i];
+  const from=it.seat==='S'?'your hand':"North's hand";
+  const h=`<h2>Trick ${it.trick}</h2><p>You played <b>${colorize(cardTxt(it.played))}</b> from ${from}. The coach would play <b>${colorize(cardTxt(it.coach))}</b>.</p><p>${colorize(it.why)}</p><p style="color:var(--muted)">Card ${i+1} of ${n}</p>`;
+  const b=[];
+  if(i<n-1)b.push({label:'Next ▶',cls:'primary',fn:()=>showReview(i+1)});
+  else b.push({label:'Watch the coach play it',cls:'primary',fn:watchCoach});
+  if(i>0)b.push({label:'◀ Previous',fn:()=>showReview(i-1)});
+  b.push({label:'Back to results',fn:resultsOverlay});
+  overlay(h,b);
+}
+function watchCoach(){
+  gen++;closeOverlay();
+  Object.assign(T,{play:newPlay(T.orig,T.contract),phase:'play',revealed:false,auto:true,watch:true,planShown:false,undo:[],suggest:null,busy:false});
+  coach("Watch the coach play this same hand. Each card it chooses for your side comes with a short explanation.");
+  renderTable();schedPlay(2500);
+}
+function watchStep(seat){
+  const P=T.play;
+  const go=()=>{const h=declarerHint(P,seat);T.suggest=h.card;coach(`<b>${cardTxt(h.card)}</b>: ${h.why}`);renderTable();later(()=>doPlay(seat,h.card),2800);};
+  if(!T.planShown){T.planShown=true;later(go,4000);}else go();
+}
+function renderTable(){
+  if(!T)return;
+  const P=T.play,ph=T.phase,c=T.contract;
+  const bar=$('tBar');
+  if(ph==='bid')bar.innerHTML=`<span><b>Bidding</b></span><span>Dealer: <b>${SEATNAME[T.dealer]}</b></span>`;
+  else bar.innerHTML=`<span>Contract <span class="pill">${colorize(bidText(c.bid))}</span> by ${SEATNAME[c.declarer]}</span><span>Need <b>${c.level+6}</b></span><span>${T.watch?'<span class="pill">Coach playing</span> ':''}Won: <b>${P.tricks.NS}</b> · Lost: <b>${P.tricks.EW}</b></span>`;
+  const inPlay=ph==='play'||ph==='done';
+  const hands=inPlay?P.hands:T.hands;
+  const active=s=>ph==='play'&&!T.busy&&!T.auto&&!P.done&&P.turn===s&&P.trick.length<4;
+  const nUp=inPlay&&T.revealed;
+  renderHand($('nHand'),sortHand(hands.N),{faceDown:!nUp,legal:active('N')?legalCards(P,'N'):null,onTap:c=>tapCard('N',c),onBad:badCard,suggest:T.suggest&&P.turn==='N'?T.suggest:null});
+  renderHand($('sHand'),sortHand(hands.S),{legal:active('S')?legalCards(P,'S'):null,onTap:c=>tapCard('S',c),onBad:badCard,suggest:T.suggest&&P.turn==='S'?T.suggest:null});
+  const lab=s=>{
+    let t=s==='S'?'South (you)':'North (partner)';
+    if(c&&c.declarer===s&&ph!=='bid')t+=' <span class="tag">Declarer</span>';
+    if(ph==='bid'&&T.turn===s)t+=' <span class="turn">Bidding…</span>';
+    if(active(s))t+=` <span class="turn">▶ Your turn: play ${s==='S'?'from your hand':'from North'}</span>`;
+    return t;
+  };
+  $('nLabel').innerHTML=lab('N');$('sLabel').innerHTML=lab('S');
+  const side=s=>{const n=hands[s].length;let backs='';for(let i=0;i<Math.min(4,Math.ceil(n/3));i++)backs+=`<i style="left:${i*7}px;top:${i*2}px"></i>`;
+    return `<div class="nm">${SEATNAME[s]}</div><div class="backs">${backs}</div><div class="cnt">${n} cards</div>${(ph==='bid'&&T.turn===s)||(ph==='play'&&P.turn===s&&!T.busy&&!P.done)?'<span class="turn" style="font-size:17px">thinking…</span>':''}`;};
+  $('wBox').innerHTML=side('W');$('eBox').innerHTML=side('E');
+  const ctr=$('center');ctr.innerHTML='';
+  if(ph==='bid'||ph==='ready'){ctr.innerHTML=auctionHtml();}
+  else{
+    if(!P.trick.length&&!P.done){ctr.innerHTML=`<div class="tmsg">${isNS(P.turn)?(P.turn==='S'?'Your lead':'Lead from North'):SEATNAME[P.turn]+' to lead'}</div>`;}
+    const w=P.trick.length===4?trickWinner(P.trick,P.trump):null;
+    for(const t of P.trick){const sl=document.createElement('div');sl.className='tslot '+t.seat;const ce=cardEl(t.card);if(w&&w.seat===t.seat)ce.classList.add('win');sl.appendChild(ce);ctr.appendChild(sl);}
+  }
+  const ctl=$('tControls');ctl.innerHTML='';
+  if(ph==='bid'){
+    const o=T.bbOpts;o.lastBid=lastBid(T.auction);o.enabled=T.turn==='S';o.glow=T.glow;o.onBid=userBid;
+    o.extra=[mkBtn('💡 Hint','brass',bidHint,T.turn!=='S')];
+    bidBox(ctl,o);
+  }else if(ph==='ready'){
+    const r=document.createElement('div');r.className='crow';r.appendChild(mkBtn('Begin play ▶','primary',beginPlay));
+    r.firstChild.style.minHeight='96px';r.firstChild.style.fontSize='30px';ctl.appendChild(r);
+  }else{
+    const r=document.createElement('div');r.className='crow';
+    const myTurn=ph==='play'&&isNS(P.turn)&&!T.busy&&!T.auto&&!P.done;
+    r.appendChild(mkBtn('💡 Hint','brass',playHint,!myTurn));
+    r.appendChild(mkBtn('↶ Undo','',undo,!T.undo.length||T.auto||ph==='done'));
+    ctl.appendChild(r);
+    const r2=document.createElement('div');r2.className='crow';
+    r2.appendChild(mkBtn('Finish the hand for me','',finishForMe,T.auto||ph==='done'));
+    r2.appendChild(mkBtn('New hand','',()=>{sfx.tap();startPractice();}));
+    ctl.appendChild(r2);
+  }
+}
+function auctionHtml(){
+  const order=['W','N','E','S'];const cells=[];
+  for(let i=0;i<order.indexOf(T.dealer);i++)cells.push('');
+  T.auction.forEach(a=>cells.push(`<span class="${isNS(a.seat)?'ns':'ew'}">${colorize(bidText(a.bid))}</span>`));
+  if(T.phase==='bid')cells.push('<span class="q">?</span>');
+  const rows=[];for(let i=0;i<cells.length;i+=4)rows.push(cells.slice(i,i+4));
+  const shown=rows.slice(-5);
+  return `<div class="auction"><table><tr><th>West</th><th>North</th><th>East</th><th>South</th></tr>${shown.map(r=>'<tr>'+[0,1,2,3].map(k=>`<td>${r[k]||''}</td>`).join('')+'</tr>').join('')}</table></div>`;
+}
+
+/* help / intro */
+function showHelp(){
+  overlay(`<h2>Bidding cheat sheet</h2><div class="cheat">${colorize(`
+  <h4>Counting points</h4><div>Ace 4, King 3, Queen 2, Jack 1. Add 1 for each card over four in a suit. 25 points together usually makes game.</div>
+  <h4>Opening bids</h4><div>Under 13: Pass<br>13–21: open your longest suit (♥ or ♠ need 5 cards; otherwise your longer minor)<br>15–17 balanced: 1NT &nbsp;·&nbsp; 20–21 balanced: 2NT &nbsp;·&nbsp; 22+: 2♣</div>
+  <h4>Answering 1 of a suit</h4><div>Under 6: Pass<br>3+ cards in partner's major: raise to 2 (6–9), 3 (10–12) or 4 (13+)<br>New suit at the 1 level: 6+ &nbsp;·&nbsp; at the 2 level: 10+<br>1NT: 6–10 &nbsp;·&nbsp; 2NT: 11–12 &nbsp;·&nbsp; 3NT: 13–15</div>
+  <h4>Answering 1NT</h4><div>0–7: Pass, or bid 2♦/2♥/2♠ with a 5+ card suit<br>8–9: 2NT &nbsp;·&nbsp; 10–15: 3NT<br>2♣ (Stayman): 8+ points with a 4-card major</div>`)}</div>`,[{label:'Close',cls:'primary'}]);
+}
+function showIntro(){
+  overlay(`<h2>Welcome to Bridge Made Easy</h2><p>If you're new to bridge, start with Lesson 1. Each lesson is a few short pages followed by practice questions.</p><p>When you're ready, play a practice hand. The coach will help with every bid and every card. Tap <b>Hint</b> any time, and tap <b>?</b> at the top for a bidding cheat sheet.</p>`,[{label:"Let's begin",cls:'primary',fn:()=>{store.seenIntro=true;save();}}]);
+}
+
+$('homeBtn').onclick=()=>{sfx.tap();closeOverlay();renderHome();};
+$('helpBtn').onclick=()=>{sfx.tap();showHelp();};
+$('soundBtn').onclick=()=>{store.sound=!store.sound;save();updateSoundBtn();sfx.tap();};
+$('practiceBtn').onclick=()=>{sfx.tap();startPractice();};
+
+fit();updateSoundBtn();renderHome();
+if(!store.seenIntro)showIntro();
+</script>
+</body>
+</html>
