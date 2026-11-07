@@ -37,18 +37,18 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 
 /* home */
 #scrHome{padding:26px 36px 20px;align-items:stretch}
-.hero{text-align:center;padding:8px 0 22px}
+.hero{text-align:center;padding:0 0 16px}
 .hero .suitrow{font-size:46px;letter-spacing:18px;color:var(--blk);line-height:1}
-.hero h1{font-family:'Playfair Display',Georgia,serif;font-size:50px;line-height:1.1;margin:14px 0 10px;color:var(--baize-d)}
+.hero h1{font-family:'Playfair Display',Georgia,serif;font-size:46px;line-height:1.1;margin:8px 0 8px;color:var(--baize-d)}
 .hero p{font-size:24px;line-height:1.45;color:var(--muted);max-width:640px;margin:0 auto}
 #lessonGrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.tile{position:relative;background:var(--paper);border:none;border-radius:16px;box-shadow:inset 0 0 0 2px var(--line),0 3px 0 var(--line);text-align:left;padding:16px 18px 14px 84px;min-height:122px;cursor:pointer;color:var(--ink)}
+.tile{position:relative;background:var(--paper);border:none;border-radius:16px;box-shadow:inset 0 0 0 2px var(--line),0 3px 0 var(--line);text-align:left;padding:14px 18px 12px 84px;min-height:112px;cursor:pointer;color:var(--ink)}
 .tile .num{position:absolute;left:18px;top:20px;width:50px;height:50px;border-radius:50%;background:var(--baize);color:var(--ivory);font-family:'Playfair Display',serif;font-size:27px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .tile.done .num{background:var(--brass)}
 .tile .tt{font-size:25px;font-weight:800;line-height:1.2}
 .tile .ts{font-size:19px;color:var(--muted);margin-top:4px;line-height:1.3}
 .tile .ck{position:absolute;right:14px;top:12px;font-size:24px;color:var(--good);font-weight:800}
-#practiceBtn{margin-top:22px;min-height:96px;font-size:31px;border-radius:18px}
+#practiceBtn{margin-top:18px;min-height:88px;font-size:30px;border-radius:18px}
 #statsLine{text-align:center;font-size:21px;color:var(--muted);margin-top:16px;line-height:1.4}
 
 /* lesson */
@@ -165,6 +165,25 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 .cheat{font-size:21px;line-height:1.38}
 .cheat h4{font-size:22px;font-weight:800;color:var(--brass-d);margin:12px 0 4px}
 .cheat div{margin-left:4px}
+
+#chBtn{margin-top:14px;min-height:84px;font-size:28px;border-radius:18px}
+#scrCh{padding:24px 34px}
+#scrCh h2{font-family:'Playfair Display',Georgia,serif;font-size:44px;color:var(--baize-d);line-height:1.1}
+#scrCh .sub{font-size:24px;color:var(--muted);margin:8px 0 18px;line-height:1.4}
+.lvlRow{display:flex;gap:12px;margin-bottom:16px}
+.lvlRow .btn{flex:1;min-height:76px;font-size:25px;line-height:1.2}
+.lvlRow .btn.l1{background:#fff}
+.lvlRow .btn.l2{background:#d6e6c9;box-shadow:inset 0 0 0 2px #b9d1a8,0 3px 0 #b9d1a8}
+.lvlRow .btn.on{box-shadow:0 0 0 4px var(--brass),0 3px 0 var(--brass-d)}
+.dealList{display:flex;flex-direction:column;gap:10px}
+.dealRow{display:flex;align-items:center;gap:16px;min-height:78px;text-align:left;padding:0 20px;font-size:25px}
+.dealRow .did{font-weight:800;color:var(--brass-d);width:52px}
+.dealRow .dt{flex:1}
+.dealRow .ds{font-size:32px;width:40px;text-align:center}
+.dealRow .ds.x{color:var(--soft);font-weight:800}
+.dealRow .ds.s{color:#d9a21b}
+.htxt{font-size:19px;line-height:1.3;font-weight:700;color:var(--ivory);text-align:left;letter-spacing:-.3px}
+.htxt .red{color:#ff9d93}
 @media (prefers-reduced-motion:reduce){.card{transition:none}}
 </style>
 </head>
@@ -185,7 +204,15 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
     </div>
     <div id="lessonGrid"></div>
     <button id="practiceBtn" class="btn primary">Play a Practice Hand</button>
+    <button id="chBtn" class="btn brass">Declarer Challenges ★</button>
     <div id="statsLine"></div>
+  </section>
+
+  <section id="scrCh" class="screen">
+    <h2>Declarer Challenges</h2>
+    <div class="sub">The bidding is done. Find the plan that makes the contract. Each deal teaches one idea.</div>
+    <div class="lvlRow" id="lvlRow"></div>
+    <div class="dealList" id="dealList"></div>
   </section>
 
   <section id="scrLesson" class="screen">
@@ -553,7 +580,8 @@ function strong2c(seq,role,h){
 
 /* ---- card play ---- */
 function cardEq(a,b){return a.s===b.s&&a.r===b.r;}
-function sortHand(h){const o={S:0,H:1,C:2,D:3};return h.slice().sort((a,b)=>o[a.s]-o[b.s]||b.r-a.r);}
+const SUIT_ORDER={N:'SHCD',S:'SHCD',H:'HSDC',D:'DSHC',C:'CHSD'};
+function sortHand(h,trump){const ord=SUIT_ORDER[trump||'N'];return h.slice().sort((a,b)=>ord.indexOf(a.s)-ord.indexOf(b.s)||b.r-a.r);}
 function newPlay(hands,contract){
   const lead=nextSeat(contract.declarer);
   return {hands:{N:hands.N.slice(),E:hands.E.slice(),S:hands.S.slice(),W:hands.W.slice()},trump:contract.strain==='N'?null:contract.strain,
@@ -594,7 +622,7 @@ function openingLead(h,trump){
   let ls=pool[0];for(const s of pool)if(by[s].length>by[ls].length||(by[s].length===by[ls].length&&hcp(by[s])>hcp(by[ls])))ls=s;
   const c=by[ls];if(c.length>=4)return c[3];if(c.length===2)return c[0];return c[c.length-1];
 }
-function followChoose(st,seat){
+function followChoose(st,seat,isDef){
   const legal=legalCards(st,seat),trump=st.trump,ls=st.trick[0].card.s;
   const w=trickWinner(st.trick,trump),partnerWin=w.seat===partnerOf(seat);
   const canFollow=st.hands[seat].some(c=>c.s===ls);
@@ -602,9 +630,20 @@ function followChoose(st,seat){
   const pos=st.trick.length;
   if(canFollow){
     if(partnerWin)return {card:lowest(legal),why:'partner'};
-    if(pos===1)return {card:lowest(legal),why:'second'};
+    if(pos===1){
+      const led=st.trick[0];
+      if(isDef&&led.card.r>=11&&isNS(led.seat)){
+        const touching=led.seat==='N'&&st.hands.N.some(c=>c.s===led.card.s&&c.r===led.card.r-1);
+        const cov=legal.filter(beats);
+        if(!touching&&cov.length)return {card:lowest(cov),why:'cover'};
+      }
+      return {card:lowest(legal),why:'second'};
+    }
     const win=legal.filter(beats);
-    if(win.length)return {card:lowest(win),why:'win'};
+    if(win.length){
+      if(pos===2&&!isDef){const own=[st.hands.N,st.hands.S];const sure=win.filter(c=>isMaster(c,st,own));if(sure.length)return {card:lowest(sure),why:'win'};}
+      return {card:lowest(win),why:'win'};
+    }
     return {card:lowest(legal),why:'cant'};
   }
   const trumps=trump?legal.filter(c=>c.s===trump):[];
@@ -625,10 +664,11 @@ function defLead(st,seat){
 }
 function defenderChoose(st,seat){
   if(!st.trick.length)return st.history.length?defLead(st,seat):openingLead(st.hands[seat],st.trump);
-  return followChoose(st,seat).card;
+  return followChoose(st,seat,true).card;
 }
 function outstandingTrumps(st){if(!st.trump)return 0;let n=13;n-=st.played.filter(c=>c.s===st.trump).length;n-=st.hands.N.filter(c=>c.s===st.trump).length+st.hands.S.filter(c=>c.s===st.trump).length;return n;}
 const FOLLOW_WHY={
+  cover:c=>`Cover an honor with an honor: ${cardTxt(c)}.`,
   partner:c=>`Your side is already winning this trick, so play low (${cardTxt(c)}) and save your high cards.`,
   second:c=>`Second hand low: play your lowest ${SNAME[c.s].slice(0,-1)} (${cardTxt(c)}) and keep your high cards for later.`,
   win:c=>`You can win this trick. Do it as cheaply as possible: ${cardTxt(c)}.`,
@@ -654,7 +694,7 @@ function declarerHint(st,seat){
     const mine=h.filter(c=>c.s===s),his=pt.filter(c=>c.s===s);if(!mine.length)continue;
     const myM=mine.filter(c=>isMaster(c,st,own)),hisM=his.filter(c=>isMaster(c,st,own));
     let cand=null;
-    if(myM.length&&(mine.length<=his.length||!hisM.length))cand={card:highest(myM),score:mine.length<=his.length?3:2,why:`Cash a sure winner: ${cardTxt(highest(myM))}.`+(mine.length<=his.length&&his.length?' Play high from the short side first.':'')};
+    if(myM.length&&(mine.length<=his.length||!hisM.length))cand={card:highest(myM),score:mine.length<=his.length?3:2.8,why:`Cash a sure winner: ${cardTxt(highest(myM))}.`+(mine.length<=his.length&&his.length?' Play high from the short side first.':'')};
     else if(hisM.length)cand={card:lowest(mine),score:2.5,why:`Lead a low ${SNAME[s].slice(0,-1)} (${cardTxt(lowest(mine))}) over to partner's winner. High from the short side first.`};
     if(cand&&(!best||cand.score>best.score))best=cand;
   }
@@ -683,6 +723,100 @@ function catResp(o,b){if(b==='P')return 'P';if(b[1]===o[1])return 'raise';if(b==
 function genRespondEx(cat){let last=null;for(let i=0;i<40000;i++){const d=dealHands();const o=openingBid(d.N).bid;if(!/^1[CDHS]$/.test(o))continue;const r=respond1(d.S,o[1]);last={opening:o,hand:d.S,ans:r};if(catResp(o,r.bid)===cat)return last;}return last;}
 function catNT(b){if(b==='P')return 'P';if(b==='2C')return 'stay';if(b==='2N')return '2N';if(b==='3N')return '3N';if(b[0]==='2')return 'sign';return 'major';}
 function genNTEx(cat){let last=null;for(let i=0;i<40000;i++){const d=dealHands();if(openingBid(d.N).bid!=='1N')continue;const r=nt1(['1N'],'R',d.S);last={opening:'1N',hand:d.S,ans:r};if(catNT(r.bid)===cat)return last;}return last;}
+
+/* ---- double-dummy solver (used by challenge defenders near the end of a hand) ---- */
+// Double-dummy solver. seats 0=N 1=E 2=S 3=W ; suits 0=C 1=D 2=H 3=S ; ranks bit 0..12 = 2..A ; trump -1 for NT
+const DD=(()=>{
+let TT=new Map(), nodes=0;
+function key(h,leader){let k=leader+'';for(let s=0;s<4;s++)for(let u=0;u<4;u++)k+=','+h[s][u];return k;}
+function search(h,trick,leader,trump,alpha,beta,cardsLeft){
+  // returns NS tricks from here among remaining tricks (including current trick)
+  nodes++;
+  const nt=trick.length;
+  if(nt===0){
+    const rem=cardsLeft;            // remaining tricks
+    if(rem===0)return 0;
+    const k=key(h,leader);const e=TT.get(k);
+    let lo=0,hi=rem;
+    if(e){lo=e[0];hi=e[1];if(lo>=beta)return lo;if(hi<=alpha)return hi;if(lo===hi)return lo;alpha=Math.max(alpha,lo);beta=Math.min(beta,hi);}
+    // quick upper/lower via top tricks? skip
+    const a0=alpha,b0=beta;
+    const v=searchMoves(h,trick,leader,leader,trump,alpha,beta,cardsLeft);
+    let nlo=lo,nhi=hi;
+    if(v<=a0)nhi=Math.min(nhi,v);else if(v>=b0)nlo=Math.max(nlo,v);else{nlo=v;nhi=v;}
+    TT.set(k,[nlo,nhi]);
+    return v;
+  }
+  const seat=(leader+nt)%4;
+  return searchMoves(h,trick,leader,seat,trump,alpha,beta,cardsLeft);
+}
+function moves(h,seat,trick){
+  const hand=h[seat];let suits=[0,1,2,3];
+  if(trick.length){const ls=trick[0].u;if(hand[ls])suits=[ls];}
+  // remaining cards (hands + in-trick) per suit
+  const out=[];
+  for(const u of suits){
+    const m=hand[u];if(!m)continue;
+    let all=h[0][u]|h[1][u]|h[2][u]|h[3][u];for(const t of trick)if(t.u===u)all|=(1<<t.r);
+    let inGroup=false;
+    for(let r=12;r>=0;r--){
+      const bit=1<<r;
+      if(m&bit){if(!inGroup){out.push({u,r});inGroup=true;}}
+      else if(all&bit)inGroup=false;
+    }
+  }
+  return out;
+}
+function winnerOf(trick,trump){let w=0;for(let i=1;i<4;i++){const c=trick[i],b=trick[w];if(c.u===b.u){if(c.r>b.r)w=i;}else if(c.u===trump)w=i;}return w;}
+function searchMoves(h,trick,leader,seat,trump,alpha,beta,cardsLeft){
+  const ns=(seat%2===0);
+  let ms=moves(h,seat,trick);
+  // ordering: try high cards first when leading, else try winning low then low
+  ms.sort((a,b)=>b.r-a.r);
+  let best=ns?-1:99;
+  for(const c of ms){
+    h[seat][c.u]&=~(1<<c.r);trick.push({u:c.u,r:c.r,s:seat});
+    let v;
+    if(trick.length===4){
+      const wi=winnerOf(trick,trump),ws=trick[wi].s,won=(ws%2===0)?1:0;
+      const saved=trick.splice(0,4);
+      v=won+search(h,[],ws,trump,alpha-won,beta-won,cardsLeft-1);
+      trick.push(...saved);
+    }else v=search(h,trick,leader,trump,alpha,beta,cardsLeft);
+    trick.pop();h[seat][c.u]|=(1<<c.r);
+    if(ns){if(v>best)best=v;if(best>alpha)alpha=best;}else{if(v<best)best=v;if(best<beta)beta=best;}
+    if(alpha>=beta)break;
+  }
+  return best;
+}
+function solve(h,trick,leader,trump,cardsLeft){return search(h,trick,leader,trump,0,cardsLeft,cardsLeft);}
+// value of each legal move for seat to play
+function evalMoves(h,trick,leader,trump,cardsLeft){
+  const seat=(leader+trick.length)%4;const res=[];
+  for(const c of moves(h,seat,trick)){
+    h[seat][c.u]&=~(1<<c.r);trick.push({u:c.u,r:c.r,s:seat});let v;
+    if(trick.length===4){const wi=winnerOf(trick,trump),ws=trick[wi].s,won=(ws%2===0)?1:0;const saved=trick.splice(0,4);v=won+solve(h,[],ws,trump,cardsLeft-1);trick.push(...saved);}
+    else v=solve(h,trick,leader,trump,cardsLeft);
+    trick.pop();h[seat][c.u]|=(1<<c.r);res.push({u:c.u,r:c.r,v});
+  }return res;
+}
+return {solve,evalMoves,reset:()=>{TT=new Map();},stats:()=>({nodes,tt:TT.size})};
+})();
+
+
+const DSI={C:0,D:1,H:2,S:3},DSE={N:0,E:1,S:2,W:3};
+function parseCard(c){return {s:c[0],r:'23456789TJQKA'.indexOf(c[1])+2};}
+function parseHandStr(str){const o=['S','H','D','C'],h=[];str.split('.').forEach((p,i)=>{for(const ch of p)h.push({s:o[i],r:'23456789TJQKA'.indexOf(ch)+2});});return h;}
+function ddEvalSt(st){const h=[];for(const s of SEATS){const m=[0,0,0,0];for(const c of st.hands[s])m[DSI[c.s]]|=1<<(c.r-2);h[DSE[s]]=m;}
+  const trick=st.trick.map(t=>({u:DSI[t.card.s],r:t.card.r-2,s:DSE[t.seat]}));const tr=st.trump?DSI[st.trump]:-1;
+  const leader=DSE[st.trick.length?st.trick[0].seat:st.turn];
+  return DD.evalMoves(h,trick,leader,tr,13-st.history.length).map(x=>({card:{s:SUITS[x.u],r:x.r+2},v:x.v}));}
+function sameGroupSt(st,seat,a,b){if(a.s!==b.s)return false;const lo=Math.min(a.r,b.r),hi=Math.max(a.r,b.r);for(let r=lo+1;r<hi;r++){if(!st.hands[seat].some(c=>c.s===a.s&&c.r===r)&&!st.played.some(c=>c.s===a.s&&c.r===r))return false;}return true;}
+function ddPick(st,seat,maximize,pref){const ev=ddEvalSt(st);const bv=maximize?Math.max(...ev.map(e=>e.v)):Math.min(...ev.map(e=>e.v));const best=ev.filter(e=>e.v===bv).map(e=>e.card);
+  if(pref&&best.some(c=>c.s===pref.s&&(c.r===pref.r||sameGroupSt(st,seat,c,pref))))return pref;
+  return best.reduce((a,b)=>b.r<a.r?b:a);}
+function hybridDef(st,seat){const rb=defenderChoose(st,seat);if(13-st.history.length<=7)return ddPick(st,seat,false,rb);return rb;}
+
 // ENGINE END
 
 /* ================= UI ================= */
@@ -856,6 +990,7 @@ function renderHome(){
   const lessonsDone=Object.keys(store.lessons).length;
   let s=`Lessons finished: <b>${lessonsDone} of 6</b>`;
   if(store.hands) s+=`<br>Practice hands played: <b>${store.hands}</b>, contracts made: <b>${store.made}</b>`;
+  const stars=Object.values(store.ch||{}).filter(v=>v==='s').length;if(stars)s+=`<br>Challenge stars: <b>${stars} of ${CH.length}</b>`;
   $('statsLine').innerHTML=s;
   show('scrHome');
 }
@@ -1037,11 +1172,11 @@ function stepPlay(){
     else if(T.auto)later(()=>{const h=declarerHint(P,seat);doPlay(seat,h.card);},450);
     return;
   }
-  doPlay(seat,defenderChoose(P,seat));
+  doPlay(seat,T.mode==='ch'?chDefender(P,seat):defenderChoose(P,seat));
 }
 function doPlay(seat,card){
   const P=T.play;playCard(P,seat,card);sfx.card();T.suggest=null;
-  if(!T.revealed){T.revealed=true;planMsg();}
+  if(!T.revealed){T.revealed=true;if(T.mode!=='ch')planMsg();}
   if(P.trick.length===4){
     T.busy=true;renderTable();
     later(()=>{const w=finishTrick(P);T.busy=false;
@@ -1084,6 +1219,7 @@ function simulateCoach(){
   return P.tricks.NS;
 }
 function endHand(){
+  if(T.mode==='ch')return chEnd();
   const c=T.contract,P=T.play,need=c.level+6,got=P.tricks.NS;T.phase='done';renderTable();
   if(T.watch){
     sfx.good();
@@ -1143,18 +1279,103 @@ function watchStep(seat){
   const go=()=>{const h=declarerHint(P,seat);T.suggest=h.card;coach(`<b>${cardTxt(h.card)}</b>: ${h.why}`);renderTable();later(()=>doPlay(seat,h.card),2800);};
   if(!T.planShown){T.planShown=true;later(go,4000);}else go();
 }
+const CH=[{"id": "1-1", "level": 1, "contract": "4H", "lead": "SQ", "N": "K743.QJ5.KQJ.862", "E": "65.873.65.QJT975", "S": "A82.AKT94.A42.K3", "W": "QJT9.62.T9873.A4", "line": ["S3", "SA", "HA", "H5", "HK", "HJ", "H4", "HQ"], "title": "Draw trumps first", "intro": "West leads the ♠Q against 4♥. You can afford to lose three tricks. Count your losers before you play.", "tip": "Ask yourself: what could the opponents trump if you play your side suits too soon?", "notes": ["Win the ♠A. Count your losers: one spade and two clubs. That's three, and you can't afford a fourth.", "Start drawing trumps with the ♥A. The opponents hold five hearts between them.", "Keep going with the ♥K.", "A third round, won by North's ♥Q. The opponents have no trumps left."], "summary": "Draw trumps before you cash your side winners. If you play diamonds first, East runs out after two rounds and trumps your third diamond. That fourth loser beats the contract."}, {"id": "1-2", "level": 1, "contract": "3N", "lead": "SK", "N": "74.AK5.AQT98.652", "E": "852.8762.KJ3.874", "S": "A63.Q43.72.AKQJ3", "W": "KQJT9.JT9.654.T9", "line": ["S4", "SA", "CA", "C2"], "title": "Take your tricks", "intro": "West leads the ♠K against 3NT. Count your sure tricks before you do anything else.", "tip": "Count your sure winners in every suit. Do you really need to take a risk?", "notes": ["Win the ♠A. Now count: one spade, three hearts, one diamond and five clubs. That's ten sure tricks!", "Start cashing your clubs with the ♣A, then keep going."], "summary": "When you already have enough sure tricks, just take them. The diamond finesse is tempting, but East holds the ♦K. If it loses, East leads a spade back, and West takes four spade tricks to beat you."}, {"id": "1-3", "level": 1, "contract": "4S", "lead": "DK", "N": "KQ4.AQ3.7652.832", "E": "32.876.984.JT974", "S": "AJT986.542.A3.KQ", "W": "75.KJT9.KQJT.A65", "line": ["D2", "DA", "S8", "SK", "SQ", "S6", "S4", "SA", "H2", "HQ"], "title": "The simple finesse", "intro": "West leads the ♦K against 4♠. You have one diamond loser and one club loser. The heart suit decides the hand.", "tip": "Which hand should you lead hearts from, so the ♥Q has a chance to win?", "notes": ["Win the ♦A.", "Draw trumps: lead the ♠8 to North's ♠K.", "Then the ♠Q. The opponents' trumps are gone.", "Lead a spade back to your ♠A. You want to be in your own hand for the key play.", "Lead a low heart toward North's ♥A Q. West plays low, so play the ♥Q. It wins, because West holds the ♥K!"], "summary": "A finesse means leading toward the card you hope will win. With ♥A Q in dummy, lead from your own hand. If West holds the King, the Queen wins. Leading the Queen from dummy, or cashing the Ace first, throws that chance away."}, {"id": "1-4", "level": 1, "contract": "4S", "lead": "CK", "N": "T92.6.K7652.A864", "E": "753.9874.983.952", "S": "AKQJ4.A532.A4.73", "W": "86.KQJT.QJT.KQJT", "line": ["CA", "C3", "H6", "HA", "H2", "S2", "D2", "DA", "H3", "S9"], "title": "Ruff in dummy", "intro": "West leads the ♣K against 4♠. You have three small hearts, and North has only one.", "tip": "North's trumps can do a job before you draw the opponents' trumps.", "notes": ["Win the ♣A in dummy.", "Lead North's ♥6 to your ♥A.", "Lead a small heart and trump it in dummy with the ♠2.", "Come back to your hand with the ♦A.", "Lead your last small heart and trump it with dummy's ♠9. Now you can draw trumps."], "summary": "Use dummy's trumps to ruff your losers before you draw trumps. If you draw trumps first, dummy's trumps are used up and your small hearts become losers."}, {"id": "1-5", "level": 1, "contract": "3N", "lead": "SQ", "N": "A5.K74.AK765.862", "E": "8742.8632.JT2.94", "S": "K63.AQ5.843.A753", "W": "QJT9.JT9.Q9.KQJT", "line": ["S5", "SK", "D3", "D5"], "title": "Set up a long suit", "intro": "West leads the ♠Q against 3NT. You have eight sure tricks. Where will the ninth come from?", "tip": "Dummy's long suit can produce extra tricks, but only if you're willing to give one away first.", "notes": ["Win the ♠K in your hand, keeping North's ♠A as a second stopper.", "Lead a low diamond and play low from dummy too, giving the opponents this trick on purpose. You still control every suit."], "summary": "Dummy's long diamonds are your extra tricks. Give up a diamond early, while you still have stoppers everywhere. With the opponents' diamonds splitting 3–2, North's last two diamonds become winners."}, {"id": "1-6", "level": 1, "contract": "3N", "lead": "CK", "N": "764.AJT98.75.642", "E": "832.754.9832.975", "S": "AK5.KQ2.AK64.A83", "W": "QJT9.63.QJT.KQJT", "line": ["C2", "CA", "HK", "H8", "HQ", "H9", "H2", "HA"], "title": "High from the short side", "intro": "West leads the ♣K against 3NT. North's hearts are your source of tricks, but North has no other way in.", "tip": "Which hand should win the early heart tricks, so you finish in the right place?", "notes": ["Win the ♣A.", "Cash the ♥K first: high cards from the shorter hand.", "Then the ♥Q.", "Now lead your ♥2 to North's ♥A. North's ♥J and ♥10 are winners, and you're in the right hand to take them."], "summary": "Play the high cards from the shorter hand first. If you lead the ♥2 to the ♥A early, your ♥K and ♥Q block the suit, and North's last hearts are stranded with no way to reach them."}, {"id": "1-7", "level": 1, "contract": "3N", "lead": "SK", "N": "74.AK5.KQJT3.862", "E": "952.876.A65.J754", "S": "A63.Q432.92.AKQ3", "W": "KQJT8.JT9.874.T9", "line": ["S4", "S3", "S7", "S6", "C2", "SA"], "title": "The hold-up", "intro": "West leads the ♠K against 3NT. You'll need tricks from diamonds, and the defenders hold the ♦A.", "tip": "What happens if you win the first spade, and East later wins the ♦A?", "notes": ["Don't win the first spade! Play low from both hands.", "West leads another spade. Duck again.", "Now win the ♠A. East has run out of spades."], "summary": "Holding up your Ace cuts the defenders off from each other. When East later wins the ♦A, East has no spade left to lead back, so West's long spades never take their tricks."}, {"id": "1-8", "level": 1, "contract": "4S", "lead": "CK", "N": "765.Q43.KQ6.A762", "E": "A2.8765.7532.T85", "S": "QJT98.AK2.A4.943", "W": "K43.JT9.JT98.KQJ", "line": ["CA", "C3", "D6", "DA", "D4", "DK", "DQ", "C4"], "title": "Discard a loser", "intro": "West leads the ♣K against 4♠. The opponents hold the ♠A and ♠K. When they win one, they'll be ready to cash their clubs.", "tip": "Is there a loser you can throw away before the opponents get the lead?", "notes": ["Win the ♣A in dummy.", "Lead a diamond to your ♦A.", "Lead your ♦4 to North's ♦K.", "Cash the ♦Q and throw away a losing club. Now it's safe to lead trumps."], "summary": "Get rid of a loser before you give up the lead. If you lead trumps first, the defenders win and cash two clubs. Add their two trump tricks and that's four."}, {"id": "2-1", "level": 2, "contract": "3N", "lead": "SQ", "N": "A5.AK4.AQJT.7532", "E": "8742.9832.732.K6", "S": "K63.765.654.AQ84", "W": "QJT9.QJT.K98.JT9", "line": ["S5", "SK", "D4", "DT", "C2", "CA", "D5", "DJ", "DA", "D6"], "title": "Repeat the finesse", "intro": "West leads the ♠Q against 3NT. Dummy's diamonds hold the key, but the ♦K is missing.", "tip": "If a finesse works once, you may need to take it again. Save your ways back to your hand.", "notes": ["Win the ♠K in your hand.", "Lead a diamond and finesse dummy's ♦10. It wins, so West must hold the ♦K.", "Come back to your hand with the ♣A so you can lead diamonds again.", "Finesse again with the ♦J. It wins too.", "Now the ♦A brings down West's ♦K, and all four diamonds are yours."], "summary": "When a finesse works, you may need to repeat it, so save an entry to the right hand. Cashing the ♦A after one finesse leaves West's King guarding the suit."}, {"id": "2-2", "level": 2, "contract": "3N", "lead": "HQ", "N": "742.653.A7654.83", "E": "863.872.JT.97652", "S": "AK5.AK4.832.AKQ4", "W": "QJT9.QJT9.KQ9.JT", "line": ["H3", "HA", "D2", "D4", "HK", "H5", "D3", "D5"], "title": "Duck to keep in touch", "intro": "West leads the ♥Q against 3NT. Dummy has five diamonds headed by the Ace, but no other way in.", "tip": "The ♦A is dummy's only entry. When should you use it?", "notes": ["Win the ♥A.", "Lead a diamond and play low from dummy. Let the opponents have it.", "Win the heart return with your ♥K.", "Duck a diamond again! Keep the ♦A in dummy for later."], "summary": "With ♦A 7 6 5 4 opposite ♦8 3 2 and no other entry, give up two diamond tricks first. Your last diamond then reaches the ♦A, and dummy's remaining diamonds are winners. Winning the ♦A early strands them."}, {"id": "2-3", "level": 2, "contract": "4S", "lead": "CQ", "N": "T87.765.K654.A65", "E": "432.A93.872.9843", "S": "AKQJ9.K42.A3.K72", "W": "65.QJT8.QJT9.QJT", "line": ["CA", "C2", "H5", "HK"], "title": "Lead toward the King", "intro": "West leads the ♣Q against 4♠. You must make a trick with your ♥K.", "tip": "Your King has the best chance when the player holding the Ace has to play before you.", "notes": ["Win the ♣A in dummy. You're in the right hand.", "Lead a heart from dummy toward your ♥K. East plays low, and your King wins."], "summary": "Lead toward a King, not away from it. With the Ace on your right, leading from dummy lets your King win. Leading the King yourself just lets East capture it."}, {"id": "2-4", "level": 2, "contract": "4H", "lead": "CK", "N": "5.876.K8432.6532", "E": "9876.J32.T75.T98", "S": "A432.AKQT9.A6.74", "W": "KQJT.54.QJ9.AKQJ", "line": ["C2", "C4", "C3", "C7", "C5", "H9", "SA", "S5", "S2", "H6", "D2", "DA", "S3", "H7"], "title": "Two ruffs in dummy", "intro": "West leads the ♣K against 4♥. Dummy has one spade and three trumps. You have three small spades.", "tip": "Dummy can trump two of your spades, but you'll need a way back to your hand in between.", "notes": ["West wins the first club.", "West cashes the ♣A as well.", "West leads a third club, and you trump it with the ♥9.", "Cash the ♠A.", "Trump a spade in dummy with the ♥6.", "Back to your hand with the ♦A.", "Trump your last small spade with dummy's ♥7. Now draw trumps."], "summary": "Ruff your losers in the hand with fewer trumps, and do it before drawing trumps. Drawing trumps first uses up dummy's trumps, and two spades become losers."}, {"id": "2-5", "level": 2, "contract": "4S", "lead": "CK", "N": "K876.752.K43.A65", "E": "52.643.876.T9832", "S": "AJT94.KQJ.A52.74", "W": "Q3.AT98.QJT9.KQJ", "line": ["CA", "C4", "S6", "SA", "S4", "SK"], "title": "Nine never", "intro": "West leads the ♣K against 4♠. In trumps you're missing only the ♠Q. Finesse, or play for it to drop?", "tip": "With nine trumps between you, the odds favor one approach. Which?", "notes": ["Win the ♣A.", "Cash the ♠A.", "Cash the ♠K, and West's ♠Q falls!"], "summary": "With nine cards missing the Queen, play the Ace and King. The odds favor the Queen falling. Bridge players remember it as \"eight ever, nine never\": with nine cards, never finesse."}, {"id": "2-6", "level": 2, "contract": "4S", "lead": "HK", "N": "AJT.765.A43.A632", "E": "32.943.7652.T984", "S": "K9754.A82.KQJ.75", "W": "Q86.KQJT.T98.KQJ", "line": ["H5", "HA", "S4", "ST", "D3", "DK", "S5", "SJ", "SA", "S7"], "title": "Eight ever", "intro": "West leads the ♥K against 4♠. You have eight trumps and you're missing the ♠Q.", "tip": "With only eight trumps, the odds change. Remember the saying \"eight ever, nine never.\"", "notes": ["Win the ♥A.", "Lead a spade toward dummy's ♠A J 10. West plays low, so finesse the ♠10. It wins.", "Back to your hand with the ♦K.", "Finesse again: the ♠J wins.", "Now the ♠A, and West's ♠Q falls."], "summary": "With eight cards missing the Queen, finesse. Cashing the Ace and King fails here, because West has three spades. \"Eight ever, nine never.\""}, {"id": "2-7", "level": 2, "contract": "4S", "lead": "CK", "N": "T876.AQT.K43.A76", "E": "932.765.872.T952", "S": "AKQJ.432.A65.843", "W": "54.KJ98.QJT9.KQJ", "line": ["CA", "C3", "S6", "SA", "SK", "S7", "SQ", "S8", "H2", "HT", "D3", "DA", "H3", "HQ", "HA", "H4"], "title": "The double finesse", "intro": "West leads the ♣K against 4♠. You need all three heart tricks from dummy's ♥A Q 10.", "tip": "You're missing the ♥K and ♥J. Which dummy card should you try first?", "notes": ["Win the ♣A.", "Draw trumps with the ♠A.", "Then the ♠K.", "And the ♠Q. The opponents' trumps are gone.", "Lead a heart and finesse dummy's ♥10. It wins!", "Back to your hand with the ♦A.", "Lead another heart and finesse the ♥Q.", "The ♥A brings down West's ♥K."], "summary": "With ♥A Q 10 and both the King and Jack missing, finesse the 10 first. If West holds both, you win all three tricks. Finessing the Queen first loses a trick to the Jack later."}, {"id": "2-8", "level": 2, "contract": "6H", "lead": "DQ", "N": "K85432.T98.A6.93", "E": "T7.743.K852.8764", "S": "A6.AKQJ2.743.A52", "W": "QJ9.65.QJT9.KQJT", "line": ["DA", "D3", "S2", "SA", "S6", "SK", "S3", "HJ", "HA", "H8", "HK", "H9", "H2", "HT"], "title": "Save your entry", "intro": "West leads the ♦Q against 6♥, knocking out dummy's only side entry. Dummy's long spades are your tricks.", "tip": "You'll need a way to reach dummy after the spades are set up. Look closely at your smallest trump.", "notes": ["Win the ♦A.", "Cash the ♠A.", "Lead a spade to dummy's ♠K.", "Lead a third spade. East trumps it, so overtrump with the ♥J. Keep your little ♥2!", "Draw trumps with the ♥A.", "Then the ♥K.", "Now lead the ♥2 to dummy's ♥10. You're in dummy, and the spades are all winners."], "summary": "Keep a low trump as your way back to dummy. If you ruff the third spade with the ♥2, East overruffs, and you've lost your only entry to dummy's good spades."}];
+
+const LEVELS=[{n:1,name:'Beginner'},{n:2,name:'Intermediate'}];
+let chLevel=1;
+function chById(id){return CH.find(d=>d.id===id);}
+function chStatus(id){return (store.ch||{})[id];}
+function setChStatus(id,v){store.ch=store.ch||{};if(store.ch[id]==='s'&&v==='x')return;store.ch[id]=v;save();}
+function openChallenges(level){
+  gen++;closeOverlay();if(level)chLevel=level;
+  const lr=$('lvlRow');lr.innerHTML='';
+  LEVELS.forEach(L=>{const done=CH.filter(d=>d.level===L.n&&chStatus(d.id)==='s').length;
+    lr.appendChild(mkBtn(`Level ${L.n}: ${L.name}<br><span style="font-size:19px;font-weight:700;opacity:.75">${done} of 8 ★</span>`,'l'+L.n+(L.n===chLevel?' on':''),()=>{sfx.tap();openChallenges(L.n);}));});
+  const dl=$('dealList');dl.innerHTML='';
+  CH.filter(d=>d.level===chLevel).forEach(d=>{const st=chStatus(d.id);
+    dl.appendChild(mkBtn(`<span class="did">${d.id}</span><span class="dt">${d.title}</span><span class="ds ${st||''}">${st==='s'?'★':st==='x'?'✗':''}</span>`,'dealRow',()=>{sfx.tap();startChallenge(d.id);}));});
+  show('scrCh');
+}
+function startChallenge(id){
+  gen++;closeOverlay();DD.reset();
+  const d=chById(id),hands={};for(const k of SEATS)hands[k]=parseHandStr(d[k]);
+  const contract={level:+d.contract[0],strain:d.contract[1],declarer:'S',bid:d.contract};
+  T={mode:'ch',deal:d,orig:hands,hands:{N:hands.N.slice(),E:hands.E.slice(),S:hands.S.slice(),W:hands.W.slice()},dealer:'S',auction:[],contract,
+     phase:'play',paused:true,play:newPlay(hands,contract),undo:[],suggest:null,glow:null,revealed:false,busy:false,auto:false,watch:false,log:[],bbOpts:{level:null}};
+  show('scrTable');coach(d.intro);renderTable();
+  overlay(`<div class="lsKicker">Challenge ${d.id} · Level ${d.level}</div><h2>${d.title}</h2><p>${colorize(d.intro)}</p><p>Contract: <b>${colorize(bidText(d.contract))}</b> by South (you). You need <b>${contract.level+6}</b> tricks. You'll play both your hand and North's.</p>`,
+    [{label:'Start ▶',cls:'primary',fn:()=>{T.paused=false;renderTable();schedPlay(600);}},{label:'Back to the list',fn:()=>openChallenges(d.level)}]);
+}
+function chDefender(st,seat){if(!st.history.length&&!st.trick.length)return parseCard(T.deal.lead);return hybridDef(st,seat);}
+function chEnd(){
+  const d=T.deal,P=T.play,need=+d.contract[0]+6,got=P.tricks.NS;T.phase='done';renderTable();
+  const nx=CH[CH.findIndex(x=>x.id===d.id)+1];
+  if(got>=need){
+    setChStatus(d.id,'s');sfx.win();
+    const b=[];if(nx)b.push({label:`Next: ${nx.id} ${nx.title} ▶`,cls:'primary',fn:()=>startChallenge(nx.id)});
+    b.push({label:'See the solution',cls:nx?'':'primary',fn:startWalk});b.push({label:'Back to the list',fn:()=>openChallenges(d.level)});
+    overlay(`<h2>Well played! <span style="color:#d9a21b">★</span></h2><p>You took ${got} tricks and made ${colorize(bidText(d.contract))}.</p><p><b>The key idea:</b> ${colorize(d.summary)}</p>`,b);
+  }else{
+    setChStatus(d.id,'x');sfx.soft();
+    overlay(`<h2>Down ${need-got}</h2><p>You took ${got} of the ${need} tricks you needed. This deal can be made, so let's walk through how.</p>`,
+      [{label:'Show me the solution ▶',cls:'primary',fn:startWalk},{label:'Try again',fn:()=>startChallenge(d.id)},{label:'Back to the list',fn:()=>openChallenges(d.level)}]);
+  }
+}
+function buildWalk(){
+  const d=T.deal;DD.reset();const st=newPlay(T.orig,T.contract);const line=d.line.map(parseCard);let li=0;const steps=[];
+  const cp=st=>({N:st.hands.N.slice(),E:st.hands.E.slice(),S:st.hands.S.slice(),W:st.hands.W.slice()});
+  while(li<line.length&&!st.done){
+    const before=cp(st);
+    for(;;){const seat=st.turn;let c;
+      if(isNS(seat))c=li<line.length?line[li++]:declarerHint(st,seat).card;
+      else c=(!st.history.length&&!st.trick.length)?parseCard(d.lead):hybridDef(st,seat);
+      playCard(st,seat,c);if(st.trick.length===4)break;}
+    const cards=st.trick.slice();const w=finishTrick(st);
+    steps.push({before,cards,winner:w.seat,ns:st.tricks.NS,ew:st.tricks.EW});
+  }
+  return {steps,after:cp(st),i:0};
+}
+function startWalk(){gen++;closeOverlay();T.paused=true;T.walk=buildWalk();T.phase='walk';renderWalk();}
+function sideTxt(s,hand){const by=bySuit(hand);
+  return `<div class="nm">${SEATNAME[s]}</div><div class="htxt">${['S','H','D','C'].map(u=>`<div>${colorize(SYM[u])} ${by[u].map(c=>rankStr(c.r)).join('')||'–'}</div>`).join('')}</div>`;}
+function renderWalk(){
+  const W=T.walk,i=W.i,n=W.steps.length,d=T.deal,last=i>=n,step=last?null:W.steps[i];
+  const minus=(h,cards)=>h.filter(c=>!cards.some(t=>cardEq(t.card,c)));
+  const H=last?W.after:{N:minus(step.before.N,step.cards),E:minus(step.before.E,step.cards),S:minus(step.before.S,step.cards),W:minus(step.before.W,step.cards)};
+  const ns=last?(n?W.steps[n-1].ns:0):step.ns,ew=last?(n?W.steps[n-1].ew:0):step.ew;
+  $('tBar').innerHTML=`<span><span class="pill">Solution</span> ${d.id}</span><span><span class="pill">${colorize(bidText(d.contract))}</span> by South</span><span>${last?'Summary':'Trick '+(i+1)}</span><span>Won <b>${ns}</b> · Lost <b>${ew}</b></span>`;
+  renderHand($('nHand'),sortHand(H.N,d.contract[1]));renderHand($('sHand'),sortHand(H.S,d.contract[1]));
+  $('nLabel').innerHTML='North (dummy)';$('sLabel').innerHTML='South (you)';
+  $('wBox').innerHTML=sideTxt('W',H.W);$('eBox').innerHTML=sideTxt('E',H.E);
+  const ctr=$('center');ctr.innerHTML='';
+  if(last)ctr.innerHTML=`<div class="tmsg">From here, the remaining tricks are straightforward.</div>`;
+  else for(const t of step.cards){const sl=document.createElement('div');sl.className='tslot '+t.seat;const ce=cardEl(t.card);if(t.seat===step.winner)ce.classList.add('win');sl.appendChild(ce);ctr.appendChild(sl);}
+  coach(last?`<b>The key idea:</b> ${d.summary}`:(d.notes[i]||'Continue.'));
+  const ctl=$('tControls');ctl.innerHTML='';
+  const r=document.createElement('div');r.className='crow';
+  r.appendChild(mkBtn('◀ Previous','',()=>{sfx.tap();W.i--;renderWalk();},i===0));
+  r.appendChild(mkBtn(last?'Done':'Next ▶','primary',()=>{sfx.tap();if(last)openChallenges(d.level);else{W.i++;renderWalk();}}));
+  ctl.appendChild(r);
+  const r2=document.createElement('div');r2.className='crow';
+  r2.appendChild(mkBtn('Try it myself','',()=>{sfx.tap();startChallenge(d.id);}));
+  r2.appendChild(mkBtn('Back to the list','',()=>{sfx.tap();openChallenges(d.level);}));
+  ctl.appendChild(r2);
+}
+
 function renderTable(){
   if(!T)return;
+  if(T.phase==='walk')return renderWalk();
   const P=T.play,ph=T.phase,c=T.contract;
   const bar=$('tBar');
-  if(ph==='bid')bar.innerHTML=`<span><b>Bidding</b></span><span>Dealer: <b>${SEATNAME[T.dealer]}</b></span>`;
+  if(T.mode==='ch')bar.innerHTML=`<span>Challenge <b>${T.deal.id}</b></span><span><span class="pill">${colorize(bidText(c.bid))}</span> by South</span><span>Need <b>${c.level+6}</b></span><span>Won <b>${P.tricks.NS}</b> · Lost <b>${P.tricks.EW}</b></span>`;
+  else if(ph==='bid')bar.innerHTML=`<span><b>Bidding</b></span><span>Dealer: <b>${SEATNAME[T.dealer]}</b></span>`;
   else bar.innerHTML=`<span>Contract <span class="pill">${colorize(bidText(c.bid))}</span> by ${SEATNAME[c.declarer]}</span><span>Need <b>${c.level+6}</b></span><span>${T.watch?'<span class="pill">Coach playing</span> ':''}Won: <b>${P.tricks.NS}</b> · Lost: <b>${P.tricks.EW}</b></span>`;
   const inPlay=ph==='play'||ph==='done';
   const hands=inPlay?P.hands:T.hands;
-  const active=s=>ph==='play'&&!T.busy&&!T.auto&&!P.done&&P.turn===s&&P.trick.length<4;
+  const active=s=>ph==='play'&&!T.paused&&!T.busy&&!T.auto&&!P.done&&P.turn===s&&P.trick.length<4;
   const nUp=inPlay&&T.revealed;
-  renderHand($('nHand'),sortHand(hands.N),{faceDown:!nUp,legal:active('N')?legalCards(P,'N'):null,onTap:c=>tapCard('N',c),onBad:badCard,suggest:T.suggest&&P.turn==='N'?T.suggest:null});
-  renderHand($('sHand'),sortHand(hands.S),{legal:active('S')?legalCards(P,'S'):null,onTap:c=>tapCard('S',c),onBad:badCard,suggest:T.suggest&&P.turn==='S'?T.suggest:null});
+  renderHand($('nHand'),sortHand(hands.N,c&&c.strain),{faceDown:!nUp,legal:active('N')?legalCards(P,'N'):null,onTap:c=>tapCard('N',c),onBad:badCard,suggest:T.suggest&&P.turn==='N'?T.suggest:null});
+  renderHand($('sHand'),sortHand(hands.S,c&&c.strain),{legal:active('S')?legalCards(P,'S'):null,onTap:c=>tapCard('S',c),onBad:badCard,suggest:T.suggest&&P.turn==='S'?T.suggest:null});
   const lab=s=>{
     let t=s==='S'?'South (you)':'North (partner)';
     if(c&&c.declarer===s&&ph!=='bid')t+=' <span class="tag">Declarer</span>';
@@ -1181,6 +1402,15 @@ function renderTable(){
   }else if(ph==='ready'){
     const r=document.createElement('div');r.className='crow';r.appendChild(mkBtn('Begin play ▶','primary',beginPlay));
     r.firstChild.style.minHeight='96px';r.firstChild.style.fontSize='30px';ctl.appendChild(r);
+  }else if(T.mode==='ch'){
+    const r=document.createElement('div');r.className='crow';
+    r.appendChild(mkBtn('💡 Tip','brass',()=>{sfx.tap();coach(`<b>Tip:</b> ${T.deal.tip}`);},T.paused));
+    r.appendChild(mkBtn('↶ Undo','',undo,!T.undo.length||ph==='done'));
+    ctl.appendChild(r);
+    const r2=document.createElement('div');r2.className='crow';
+    r2.appendChild(mkBtn('Show me the solution','',()=>{sfx.tap();setChStatus(T.deal.id,'x');startWalk();},T.paused));
+    r2.appendChild(mkBtn('Restart deal','',()=>{sfx.tap();startChallenge(T.deal.id);}));
+    ctl.appendChild(r2);
   }else{
     const r=document.createElement('div');r.className='crow';
     const myTurn=ph==='play'&&isNS(P.turn)&&!T.busy&&!T.auto&&!P.done;
@@ -1219,6 +1449,7 @@ $('homeBtn').onclick=()=>{sfx.tap();closeOverlay();renderHome();};
 $('helpBtn').onclick=()=>{sfx.tap();showHelp();};
 $('soundBtn').onclick=()=>{store.sound=!store.sound;save();updateSoundBtn();sfx.tap();};
 $('practiceBtn').onclick=()=>{sfx.tap();startPractice();};
+$('chBtn').onclick=()=>{sfx.tap();openChallenges();};
 
 fit();updateSoundBtn();renderHome();
 if(!store.seenIntro)showIntro();
