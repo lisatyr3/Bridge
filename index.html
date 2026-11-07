@@ -268,7 +268,7 @@ function lens(h){const L={C:0,D:0,H:0,S:0};for(const c of h)L[c.s]++;return L;}
 function lengthPts(h){const L=lens(h);let p=0;for(const s of SUITS)if(L[s]>4)p+=L[s]-4;return p;}
 function totalPts(h){return hcp(h)+lengthPts(h);}
 function isBalanced(h){const v=Object.values(lens(h)).sort((a,b)=>a-b);return v[0]>=2&&v[1]>=3;}
-function supportPts(h,trump){const L=lens(h);let p=hcp(h);for(const s of SUITS){if(s===trump)continue;if(L[s]===0)p+=5;else if(L[s]===1)p+=3;else if(L[s]===2)p+=1;}return p;}
+function supportPts(h,trump){const L=lens(h),four=L[trump]>=4;let p=hcp(h);for(const s of SUITS){if(s===trump)continue;if(L[s]===0)p+=four?5:3;else if(L[s]===1)p+=four?3:2;else if(L[s]===2)p+=1;}return p;}
 function isMajor(s){return s==='H'||s==='S';}
 function rankOf(s){return STRAINS.indexOf(s);}
 function bidVal(b){return (+b[0]-1)*5+rankOf(b[1]);}
@@ -954,7 +954,7 @@ const LESSONS=[
  ],exercise:{type:'open',cats:['1M','1m','1N','P','1M','big']}},
  {title:'Answering partner',blurb:'Responding to 1 of a suit',pages:[
   {h:'Should I respond?',t:`<p>When partner opens 1 of a suit, they have 13 or more points. If you have <b>6 or more</b>, you should bid. With fewer than 6, pass.</p><p>Your job now is to find a trump fit and decide how high to go.</p>`},
-  {h:'Supporting a major',t:`<p>If partner opens 1♥ or 1♠ and you hold three or more cards in that suit, you've found a fit. Count <b>support points</b>: high cards plus 5 for a void, 3 for a singleton, 1 for a doubleton.</p><p>6–9: raise to 2. &nbsp;10–12: raise to 3. &nbsp;13 or more: jump to 4, a game.</p>`},
+  {h:'Supporting a major',t:`<p>If partner opens 1♥ or 1♠ and you hold three or more cards in that suit, you've found a fit. Count <b>support points</b>: your high cards plus extra for short suits. With four trumps, add 5 for a void, 3 for a singleton, 1 for a doubleton. With only three trumps, add 3, 2 and 1.</p><p>6–9: raise to 2. &nbsp;10–12: raise to 3. &nbsp;13 or more: jump to 4, a game.</p>`},
   {h:'Showing a new suit',t:`<p>No fit yet? Show a 4-card or longer major at the one level, with 6+ points. With four hearts and four spades, bid hearts first.</p><p>A new suit at the two level needs <b>10+ points</b>. Any new suit you bid is forcing: partner must bid again.</p>`},
   {h:'No-trump answers',t:`<p>With nothing else to say, bid no trump:</p><p><b>1NT</b> shows 6–10 points.<br><b>2NT</b> shows 11–12 and invites game.<br><b>3NT</b> shows 13–15, enough for game.</p>`}
  ],exercise:{type:'respond',cats:['raise','new1','1N','P','new2','raise']}},
