@@ -40,17 +40,22 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 .hero{text-align:center;padding:0 0 16px}
 .hero .suitrow{font-size:46px;letter-spacing:18px;color:var(--blk);line-height:1}
 .hero h1{font-family:'Playfair Display',Georgia,serif;font-size:46px;line-height:1.1;margin:8px 0 8px;color:var(--baize-d)}
-.hero p{font-size:24px;line-height:1.45;color:var(--muted);max-width:640px;margin:0 auto}
-#lessonGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-#lessonGrid .tile:last-child:nth-child(odd){grid-column:1 / -1;min-height:84px}
-.tile{position:relative;background:var(--paper);border:none;border-radius:16px;box-shadow:inset 0 0 0 2px var(--line),0 3px 0 var(--line);text-align:left;padding:14px 18px 12px 84px;min-height:112px;cursor:pointer;color:var(--ink)}
-.tile .num{position:absolute;left:18px;top:20px;width:50px;height:50px;border-radius:50%;background:var(--baize);color:var(--ivory);font-family:'Playfair Display',serif;font-size:27px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.hero p{font-size:22px;line-height:1.4;color:var(--muted);max-width:640px;margin:0 auto}
+#lessonGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tile.adv{background:#f4efe2}
+.tile.adv .num{background:var(--mahog)}
+.styleRow{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;font-size:21px;font-weight:700;color:var(--muted)}
+.styleRow .btn{min-height:50px;font-size:21px;padding:0 20px}
+.styleRow .btn.on{background:var(--baize);color:#fff;box-shadow:0 3px 0 var(--baize-d)}
+#lessonGrid .tile:last-child:nth-child(odd){grid-column:1 / -1}
+.tile{position:relative;background:var(--paper);border:none;border-radius:16px;box-shadow:inset 0 0 0 2px var(--line),0 3px 0 var(--line);text-align:left;padding:10px 14px 8px 74px;min-height:80px;cursor:pointer;color:var(--ink)}
+.tile .num{position:absolute;left:14px;top:15px;width:46px;height:46px;border-radius:50%;background:var(--baize);color:var(--ivory);font-family:'Playfair Display',serif;font-size:27px;font-weight:700;display:flex;align-items:center;justify-content:center}
 .tile.done .num{background:var(--brass)}
-.tile .tt{font-size:25px;font-weight:800;line-height:1.2}
-.tile .ts{font-size:19px;color:var(--muted);margin-top:4px;line-height:1.3}
+.tile .tt{font-size:23px;font-weight:800;line-height:1.15}
+.tile .ts{font-size:17px;color:var(--muted);margin-top:2px;line-height:1.25}
 .tile .ck{position:absolute;right:14px;top:12px;font-size:24px;color:var(--good);font-weight:800}
-#practiceBtn{margin-top:18px;min-height:88px;font-size:30px;border-radius:18px}
-#statsLine{text-align:center;font-size:21px;color:var(--muted);margin-top:16px;line-height:1.4}
+#practiceBtn{margin-top:14px;min-height:80px;font-size:29px;border-radius:18px}
+#statsLine{text-align:center;font-size:19px;color:var(--muted);margin-top:10px;line-height:1.35}
 
 /* lesson */
 #scrLesson{padding:26px 40px 24px}
@@ -167,8 +172,8 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 .cheat h4{font-size:22px;font-weight:800;color:var(--brass-d);margin:12px 0 4px}
 .cheat div{margin-left:4px}
 
-.modeRow{display:flex;gap:14px;margin-top:14px}
-.modeRow .btn{flex:1;min-height:84px;font-size:26px;border-radius:18px;padding:0 10px}
+.modeRow{display:flex;gap:14px;margin-top:12px}
+.modeRow .btn{flex:1;min-height:76px;font-size:26px;border-radius:18px;padding:0 10px}
 .btn.green{background:var(--baize);color:#fff;box-shadow:0 4px 0 var(--baize-d)}
 .tBar .sc{color:var(--brass-l)}
 #scrCh{padding:24px 34px}
@@ -209,6 +214,7 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
     <div id="lessonGrid"></div>
     <button id="practiceBtn" class="btn primary">Play a Practice Hand</button>
     <div class="modeRow"><button id="chBtn" class="btn brass">Declarer Challenges ★</button><button id="jpBtn" class="btn green">Just Play ♠</button></div>
+    <div class="styleRow"><span>Bidding style:</span><button class="btn" id="sysBasic">Basic</button><button class="btn" id="sysModern">Modern</button></div>
     <div id="statsLine"></div>
   </section>
 
@@ -287,6 +293,8 @@ function getContract(a){const lb=lastBid(a);if(!lb)return null;let idx=-1;for(le
   for(const x of a){if(x.bid!=='P'&&x.bid[1]===strain&&(x.seat===side||x.seat===partnerOf(side))){decl=x.seat;break;}}
   return {level:+lb[0],strain,declarer:decl,bid:lb};}
 
+const SYS={modern:false};
+function topHonors(h,s){return h.filter(c=>c.s===s&&c.r>=11).length;}
 function R(bid,why,means){return {bid,why,means:means||''};}
 const PASS_DONE=()=>R('P','Your side has reached its contract. Pass.','Pass');
 
@@ -299,7 +307,7 @@ function recommend(auction,seat,hand){
   else{
     const seq=ns.slice(fi).filter(x=>x.bid!=='P').map(x=>x.bid);
     const role=ns[fi].seat===seat?'O':'R';
-    r=conventionReply(auction,seat,hand)||continueBid(seq,role,hand);
+    r=conventionReply(auction,seat,hand)||askerPlace(auction,seat,hand)||continueBid(seq,role,hand);
   }
   if(!isLegal(r.bid,auction)) r=R('P','There is no sensible higher bid to make, so pass.','Pass');
   return r;
@@ -314,6 +322,10 @@ function naturalSuitBid(ns,i){
   if(b==='2C'&&(prev[prev.length-1]==='1N'||prev[prev.length-1]==='2N'))return false; // Stayman
   if(b==='2C'&&prev.length===0)return false;                                          // strong 2C
   if(b==='2D'&&(prev[prev.length-1]==='2C'))return false;                              // Stayman / waiting answers
+  if(SYS.modern){const p1=prev[prev.length-1],p2=prev[prev.length-2];
+    if(p1==='1N'&&(b==='2D'||b==='2H'))return false; if(p1==='2N'&&(b==='3D'||b==='3H'))return false;
+    if(p2==='1N'&&((p1==='2D'&&b==='2H')||(p1==='2H'&&b==='2S')))return false;
+    if(p2==='2N'&&((p1==='3D'&&b==='3H')||(p1==='3H'&&b==='3S')))return false;}
   return true;
 }
 function conventionReply(auction,seat,hand){
@@ -350,12 +362,27 @@ function conventionReply(auction,seat,hand){
   }
   return null;
 }
+function askerPlace(auction,seat,hand){
+  const ns=auction.filter(x=>isNS(x.seat)&&x.bid!=='P');if(ns.length<2)return null;
+  const last=ns[ns.length-1],ask=ns[ns.length-2];
+  if(last.seat===seat||ask.seat!==seat||ask.bid!=='4N'||lastBid(auction)!==last.bid)return null;
+  if(!['5C','5D','5H','5S'].includes(last.bid)||!ns.slice(0,-2).some((_,j)=>naturalSuitBid(ns,j)))return null;
+  const mine=aceCount(hand);let theirs=['C','D','H','S'].indexOf(last.bid[1]);if(theirs===0&&mine===0)theirs=4;
+  const missing=4-mine-theirs,L=lens(hand);
+  const suits=[...new Set(ns.filter((x,j)=>x.seat!==seat&&naturalSuitBid(ns,j)).map(x=>x.bid[1]))];
+  const first=ns.find((x,j)=>x.seat!==seat&&naturalSuitBid(ns,j));
+  let st=(first&&isMajor(first.bid[1])&&L[first.bid[1]]>=3)?first.bid[1]:(suits.filter(s=>isMajor(s)&&L[s]>=3).sort((a,b)=>L[b]-L[a])[0]||suits.filter(s=>L[s]>=3).sort((a,b)=>L[b]-L[a])[0]||'N');
+  if(missing>=2){const b='5'+st;return bidVal(b)>bidVal(last.bid)?R(b,`Your side is missing ${missing} Aces, so slam is too risky. Stop at ${bidText(b)}.`,'Sign-off'):R('P',`Your side is missing ${missing} Aces. Stop here.`,'Sign-off');}
+  const b='6'+st;
+  return R(b,`Your side has ${4-missing} of the 4 Aces${missing?', missing just one':''}. Bid the slam: ${bidText(b)}.`,'Slam');
+}
 function continueBid(seq,role,h){
   const o=seq[0];
   if(seq.length>=6) return PASS_DONE();
   if(o==='1N') return nt1(seq,role,h);
   if(o==='2N') return nt2(seq,role,h);
   if(o==='2C') return strong2c(seq,role,h);
+  if(SYS.modern&&(o==='2D'||o==='2H'||o==='2S')) return weak2(seq,role,h);
   return suit1(seq,role,h);
 }
 function openingSuit(L){
@@ -368,12 +395,29 @@ function openingBid(h){
   if(bal&&H>=20&&H<=21) return R('2N',`You have ${H} high-card points and a balanced hand. Open 2NT, which shows 20–21 balanced.`,'20–21 points, balanced');
   if(T>=22) return R('2C',`You have ${T} total points, a very strong hand. Open 2♣, the special bid for 22 or more points.`,'22+ points, very strong (artificial)');
   if(bal&&H>=15&&H<=17) return R('1N',`You have ${H} high-card points and a balanced hand. Open 1NT, which shows exactly 15–17 balanced.`,'15–17 points, balanced');
+  if(SYS.modern&&T<13){
+    const ws=['S','H','D'].find(s=>L[s]===6&&H>=5&&H<=10&&topHonors(h,s)>=2);
+    if(ws) return R('2'+ws,`You have ${H} high-card points and six good ${SNAME[ws]}. That's a weak two-bid: open 2${SYM[ws]}.`,`Weak two: 5–10 points, 6 ${SNAME[ws]}`);
+  }
   if(T<13) return R('P',`You have ${T} total points. You need 13 to open, so pass.`,'Fewer than 13 points');
   const s=openingSuit(L);let why;
   if(isMajor(s)) why=`You have ${T} total points and ${L[s]} ${SNAME[s]}. With 13+ points and a 5-card major, open 1${SYM[s]}.`;
   else if(L[s]>=5) why=`You have ${T} total points, and ${SNAME[s]} is your longest suit. Open 1${SYM[s]}.`;
   else why=`You have ${T} total points but no 5-card major, so open your longer minor: 1${SYM[s]}.`+(L.C===L.D?(L.C===3?' With 3–3 in the minors, choose clubs.':' With 4–4 in the minors, choose diamonds.'):'');
   return R('1'+s,why,isMajor(s)?`13+ points, 5+ ${SNAME[s]}`:`13+ points, 3+ ${SNAME[s]}`);
+}
+
+function weak2(seq,role,h){
+  const k=seq.length,o=seq[0][1],H=hcp(h),L=lens(h);
+  if(role==='R'&&k===1){
+    if(isMajor(o)&&L[o]>=3){
+      if(H>=15) return R('4'+o,`Partner's weak 2${SYM[o]} shows six ${SNAME[o]} and 5–10 points. With ${L[o]}-card support and ${H} points, there's enough for game: 4${SYM[o]}.`,'To play in game');
+      if(H<=10) return R('3'+o,`Partner's weak two shows six ${SNAME[o]}. With ${L[o]}-card support but a weak hand, raise to 3${SYM[o]} to make life hard for the opponents. It doesn't invite game.`,'Blocking raise, not inviting');
+    }
+    if(H>=17&&isBalanced(h)) return R('3N',`Partner's weak two shows 5–10 points. With ${H} and a balanced hand, try 3NT.`,'To play');
+    return R('P',`Partner's weak two shows a weak hand with six ${SNAME[o]}. Game is unlikely, so pass.`,'Pass');
+  }
+  return PASS_DONE();
 }
 function suit1(seq,role,h){
   const k=seq.length,o1=seq[0][1];
@@ -393,9 +437,11 @@ function respond1(h,o){
   if(isMajor(o)&&L[o]>=3){
     const sp=supportPts(h,o);
     if(sp>=6){
+      if(L[o]>=5&&H<=9&&Object.values(L).some(x=>x<=1)) return R('4'+o,`You have ${L[o]} ${SNAME[o]}, a singleton or void, and only ${H} high-card points. Jump to 4${SYM[o]}. This is a weak, blocking raise that makes life hard for the opponents. Partner will pass.`,`Weak hand, 5+ ${SNAME[o]} (pre-emptive)`);
       if(sp<=9) return R('2'+o,`Partner opened ${ob} and you have ${L[o]} of them: a fit! You have ${sp} support points (high cards plus shortness), so raise to 2${SYM[o]}.`,`6–9 points, 3+ ${SNAME[o]}`);
       if(sp<=12) return R('3'+o,`You have ${L[o]}-card support and ${sp} support points. With 10–12, raise to 3${SYM[o]}. Partner will bid game with more than a minimum.`,`10–12 points, 3+ ${SNAME[o]} (invites game)`);
-      return R('4'+o,`You have ${L[o]}-card support and ${sp} support points. With 13 or more, there's enough for game. Jump to 4${SYM[o]}.`,`13+ points, 3+ ${SNAME[o]}`);
+      const ns=tempSuit(L,o);
+      return R(ns,`You have ${L[o]}-card support and ${sp} support points: enough for game, and maybe a slam. Don't jump straight to 4${SYM[o]}, which would tell partner you're weak. Bid a new suit first, ${bidText(ns)}. It's forcing, so partner must bid again, and on your next turn you'll show your support for partner's ${SNAME[o]}.`,`${ns[0]==='1'?'6':'10'}+ points, forcing`);
     }
   }
   if(H<6) return R('P',`You have only ${H} high-card points. With fewer than 6, pass partner's opening.`,'Fewer than 6 points');
@@ -417,6 +463,12 @@ function respond1(h,o){
     if(H<=12) return R('3'+o,`You have ${H} points and ${L[o]}-card ${SNAME[o]} support. With 11–12, jump to 3${SYM[o]} to invite game.`,`11–12 points, 5+ ${SNAME[o]}`);
   }
   return ntResp(H,false);
+}
+function tempSuit(L,o){
+  if(o==='H'&&L.S>=4)return '1S';
+  const c=SUITS.filter(s=>rankOf(s)<rankOf(o)&&L[s]>=(s==='H'?5:4));
+  if(c.length){let b=c[0];for(const x of c)if(L[x]>L[b]||(L[x]===L[b]&&rankOf(x)>rankOf(b)))b=x;return '2'+b;}
+  const m=['D','C'].filter(s=>rankOf(s)<rankOf(o));let b=m[0];for(const x of m)if(L[x]>L[b])b=x;return '2'+b;
 }
 function secondSuit(L,o1,rs,higher){
   const c=SUITS.filter(s=>s!==o1&&s!==rs&&L[s]>=4&&(higher?rankOf(s)>rankOf(o1):rankOf(s)<rankOf(o1)));
@@ -514,8 +566,13 @@ function resp2(h,o1,r1,o2){
       return R('P',`Partner invited game, but your raise is a minimum (${sp} support points). Pass.`,'Declines');}
     return PASS_DONE();
   }
-  if(o2==='3N'||(isMajor(os)&&ol>=4)) return R('P','Partner has bid game. Pass.','Pass');
   const [lo,hi]=openerRange(o1,r1,o2);
+  if(isMajor(o1)&&L[o1]>=3&&supportPts(h,o1)>=13&&r1===tempSuit(L,o1)){
+    const sp=supportPts(h,o1);
+    if(sp+lo>=33&&bidVal('4N')>bidVal(o2)) return R('4N',`You have ${sp} support points and partner has at least ${lo}: slam is likely. Bid 4NT (Blackwood) to ask how many Aces partner holds.`,'Blackwood: asks for Aces');
+    if(bidVal('4'+o1)>bidVal(o2)) return R('4'+o1,`Now show your support for partner's ${SNAME[o1]} by jumping to game: 4${SYM[o1]}. Because you bid a new suit first, partner knows you have real strength, not a weak hand.`,`Game, good ${SNAME[o1]} support`);
+  }
+  if(o2==='3N'||(isMajor(os)&&ol>=4)) return R('P','Partner has bid game. Pass.','Pass');
   let fit=null;
   if(isMajor(os)&&os===rs) fit=rs;
   else if(isMajor(o1)&&L[o1]>=3) fit=o1;
@@ -562,6 +619,9 @@ function nt1(seq,role,h){
   const k=seq.length,H=hcp(h),L=lens(h);
   if(role==='R'&&k===1){
     const five=L.H>=5||L.S>=5,four=L.H>=4||L.S>=4;
+    if(SYS.modern&&five){const M=L.S>=5&&L.S>=L.H?'S':'H',b=M==='H'?'2D':'2H';
+      return R(b,`You have ${L[M]} ${SNAME[M]}. Bid ${bidText(b)}, a Jacoby transfer. It asks partner to bid 2${SYM[M]}, so the stronger hand becomes declarer. Then you'll show your strength.`,`Transfer: 5+ ${SNAME[M]}`);}
+    if(SYS.modern&&H<=7) return R('P',`Partner has 15–17 and you have ${H}: not enough for game, and no five-card major to transfer to. Pass.`,'0–7 points');
     if(H<=7){
       const c=['D','H','S'].filter(s=>L[s]>=5);
       if(c.length){let s=c[0];for(const x of c)if(L[x]>L[s]||(L[x]===L[s]&&rankOf(x)>rankOf(s)))s=x;
@@ -577,6 +637,7 @@ function nt1(seq,role,h){
   }
   if(role==='O'&&k===2){
     const r=seq[1];
+    if(SYS.modern&&(r==='2D'||r==='2H')){const M=r==='2D'?'H':'S';return R('2'+M,`Partner's ${bidText(r)} is a Jacoby transfer showing five or more ${SNAME[M]}. You must bid 2${SYM[M]}.`,`Completes the transfer`);}
     if(r==='2C'){
       if(L.H>=4) return R('2H',`Partner bid Stayman. You have four hearts, so answer 2♥.`+(L.S>=4?' With both majors, show hearts first.':''),'4+ hearts');
       if(L.S>=4) return R('2S','Partner bid Stayman. You have four spades, so answer 2♠.','4 spades');
@@ -587,6 +648,10 @@ function nt1(seq,role,h){
     return R('P','Partner has placed the contract. Pass.','Pass');
   }
   if(role==='R'&&k===3){
+    if(SYS.modern&&(seq[1]==='2D'||seq[1]==='2H')){const M=seq[1]==='2D'?'H':'S';
+      if(H<=7) return R('P',`Partner has bid your ${SNAME[M]}. With only ${H} points, game is out of reach, so pass and play 2${SYM[M]}.`,'Weak: to play');
+      if(H<=9) return L[M]>=6?R('3'+M,`With ${H} points and six ${SNAME[M]}, invite game with 3${SYM[M]}.`,`Invites game, 6+ ${SNAME[M]}`):R('2N',`With ${H} points and five ${SNAME[M]}, invite game with 2NT. Partner can choose 3NT or a ${SNAME[M].slice(0,-1)} contract.`,`Invites game, 5 ${SNAME[M]}`);
+      return L[M]>=6?R('4'+M,`With ${H} points and six ${SNAME[M]}, bid game: 4${SYM[M]}.`,`Game, 6+ ${SNAME[M]}`):R('3N',`With ${H} points and five ${SNAME[M]}, bid 3NT. Partner will choose 4${SYM[M]} with three-card support.`,`Game, 5 ${SNAME[M]} (partner chooses)`);}
     if(seq[1]==='2C'){const M=seq[2][1];
       if((M==='H'||M==='S')&&L[M]>=4) return H<=9?R('3'+M,`Partner has four ${SNAME[M]}, and so do you! With ${H} points, invite game with 3${SYM[M]}.`,'Invites game'):R('4'+M,`Partner has four ${SNAME[M]}, and so do you! With ${H} points, bid game: 4${SYM[M]}.`,'Game');
       return H<=9?R('2N',`No major-suit fit. With ${H} points, invite game with 2NT.`,'Invites game'):R('3N',`No major-suit fit. With ${H} points, bid 3NT.`,'Game');}
@@ -594,6 +659,12 @@ function nt1(seq,role,h){
   }
   if(role==='O'&&k===4){
     const r2=seq[3];
+    if(SYS.modern&&(seq[1]==='2D'||seq[1]==='2H')){const M=seq[1]==='2D'?'H':'S',fit=L[M]>=3,max=H>=16;
+      if(r2==='2N'){if(fit)return R(max?'4'+M:'3'+M,`Partner invited game with five ${SNAME[M]}. You have ${L[M]}, a fit${max?', and a maximum, so bid game':', but a minimum, so stop in 3'+SYM[M]}.`,fit&&max?'Game':'Minimum, with a fit');
+        return max?R('3N',`No fit, but you have a maximum. Bid 3NT.`,'Accepts'):R('P','No fit and a minimum. Pass.','Declines');}
+      if(r2==='3'+M)return max?R('4'+M,`Partner invited with six ${SNAME[M]}. With a maximum, bid game: 4${SYM[M]}.`,'Accepts'):R('P','Partner invited, but you have a minimum. Pass.','Declines');
+      if(r2==='3N')return fit?R('4'+M,`Partner shows five ${SNAME[M]} and game values. You have ${L[M]}, so choose 4${SYM[M]}.`,`Chooses ${SNAME[M]}`):R('P',`Partner shows five ${SNAME[M]}, but you have only two. Pass 3NT.`,'Chooses no trump');
+      return PASS_DONE();}
     if(r2==='2N'||r2==='3H'||r2==='3S'){const acc=r2==='2N'?'3N':'4'+r2[1];
       return H>=16?R(acc,`Partner invited game. With ${H}, the top of your 1NT range, accept: ${bidText(acc)}.`,'Accepts'):R('P','Partner invited game. With a minimum, pass.','Declines');}
     return PASS_DONE();
@@ -602,6 +673,18 @@ function nt1(seq,role,h){
 }
 function nt2(seq,role,h){
   const H=hcp(h),L=lens(h);
+  if(SYS.modern){
+    const k=seq.length;
+    if(role==='R'&&k===1&&(L.H>=5||L.S>=5)){const M=L.S>=5&&L.S>=L.H?'S':'H',b=M==='H'?'3D':'3H';
+      return R(b,`You have ${L[M]} ${SNAME[M]}. Bid ${bidText(b)}, a transfer: partner will bid 3${SYM[M]}.`,`Transfer: 5+ ${SNAME[M]}`);}
+    if(role==='O'&&k===2&&(seq[1]==='3D'||seq[1]==='3H')){const M=seq[1]==='3D'?'H':'S';return R('3'+M,`Partner's ${bidText(seq[1])} is a transfer showing ${SNAME[M]}. Bid 3${SYM[M]}.`,'Completes the transfer');}
+    if(role==='R'&&k===3&&(seq[1]==='3D'||seq[1]==='3H')){const M=seq[1]==='3D'?'H':'S';
+      if(H<=3) return R('P',`With only ${H} points, pass and play 3${SYM[M]}.`,'Weak: to play');
+      return L[M]>=6?R('4'+M,`With ${H} points and six ${SNAME[M]}, bid 4${SYM[M]}.`,'Game'):R('3N',`With ${H} points and five ${SNAME[M]}, bid 3NT. Partner chooses 4${SYM[M]} with three-card support.`,'Game, partner chooses');}
+    if(role==='O'&&k===4&&(seq[1]==='3D'||seq[1]==='3H')&&seq[3]==='3N'){const M=seq[1]==='3D'?'H':'S';
+      return L[M]>=3?R('4'+M,`Partner shows five ${SNAME[M]}. You have ${L[M]}, so choose 4${SYM[M]}.`,`Chooses ${SNAME[M]}`):R('P','Only two-card support. Pass 3NT.','Chooses no trump');}
+    if(k>=2&&(seq[1]==='3D'||seq[1]==='3H'))return PASS_DONE();
+  }
   if(role==='R'&&seq.length===1){
     if(H<=3) return R('P',`Partner has 20–21 and you have ${H}, short of the 25 needed for game. Pass.`,'0–3 points');
     const M=L.S>=6?'S':(L.H>=6?'H':null);
@@ -767,11 +850,11 @@ function makePracticeDeal(minNS,maxNS){
     return h;
   }return h;
 }
-function catOpen(b){if(b==='P')return 'P';if(b==='1N')return '1N';if(b==='2N'||b==='2C')return 'big';return isMajor(b[1])?'1M':'1m';}
+function catOpen(b){if(b==='P')return 'P';if(b==='1N')return '1N';if(b==='2N'||b==='2C')return 'big';if(b[0]==='2')return 'weak2';return isMajor(b[1])?'1M':'1m';}
 function genOpeningEx(cat){let last;for(let i=0;i<40000;i++){const h=dealHands().S;const r=openingBid(h);last={hand:h,ans:r};if(catOpen(r.bid)===cat)return last;}return last;}
 function catResp(o,b){if(b==='P')return 'P';if(b[1]===o[1])return 'raise';if(b==='1N')return '1N';if(b[1]==='N')return 'NT';return b[0]==='1'?'new1':'new2';}
 function genRespondEx(cat){let last=null;for(let i=0;i<40000;i++){const d=dealHands();const o=openingBid(d.N).bid;if(!/^1[CDHS]$/.test(o))continue;const r=respond1(d.S,o[1]);last={opening:o,hand:d.S,ans:r};if(catResp(o,r.bid)===cat)return last;}return last;}
-function catNT(b){if(b==='P')return 'P';if(b==='2C')return 'stay';if(b==='2N')return '2N';if(b==='3N')return '3N';if(b[0]==='2')return 'sign';return 'major';}
+function catNT(b){if(b==='P')return 'P';if(b==='2C')return 'stay';if(SYS.modern&&(b==='2D'||b==='2H'))return 'xfer';if(b==='2N')return '2N';if(b==='3N')return '3N';if(b[0]==='2')return 'sign';return 'major';}
 function genNTEx(cat){let last=null;for(let i=0;i<40000;i++){const d=dealHands();if(openingBid(d.N).bid!=='1N')continue;const r=nt1(['1N'],'R',d.S);last={opening:'1N',hand:d.S,ans:r};if(catNT(r.bid)===cat)return last;}return last;}
 
 /* ---- double-dummy solver (used by challenge defenders near the end of a hand) ---- */
@@ -867,6 +950,19 @@ function ddPick(st,seat,maximize,pref){const ev=ddEvalSt(st);const bv=maximize?M
   return best.reduce((a,b)=>b.r<a.r?b:a);}
 function hybridDef(st,seat){const rb=defenderChoose(st,seat);if(13-st.history.length<=7)return ddPick(st,seat,false,rb);return rb;}
 
+function describeBid(auction,seat,bid){
+  const prev=[];auction.forEach((x,i)=>{if(x.seat===seat)prev.push(i);});
+  const counts={};let hits=0;
+  for(let t=0;t<7000&&hits<50;t++){
+    const h=shuffle(newDeck()).slice(0,13);let ok=true;
+    for(const i of prev)if(recommend(auction.slice(0,i),seat,h).bid!==auction[i].bid){ok=false;break;}
+    if(!ok)continue;
+    const r=recommend(auction,seat,h);if(r.bid!==bid)continue;
+    hits++;counts[r.means]=(counts[r.means]||0)+1;
+  }
+  if(hits<4)return null;
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
+}
 // ENGINE END
 
 /* ================= UI ================= */
@@ -1000,17 +1096,17 @@ const LESSONS=[
   {h:'The 1NT opening',t:`<p>Open <b>1NT</b> with 15–17 high-card points and a balanced hand: no void, no singleton, and no more than one doubleton.</p><p>1NT is a wonderful bid. It tells partner your strength and shape in a single step.</p>`,ex:`♠ K Q 4 &nbsp; ♥ A J 7 2 &nbsp; ♦ K 10 5 &nbsp; ♣ Q 8 3<br>16 points, balanced: <b>open 1NT</b>`},
   {h:'Opening a major',t:`<p>Otherwise, open your longest suit. To open a major suit (♥ or ♠) you need at least <b>five</b> cards in it.</p><p>With two 5-card suits, open the higher-ranking one.</p>`,ex:`♠ A Q 9 6 3 &nbsp; ♥ K 4 &nbsp; ♦ Q J 8 &nbsp; ♣ 7 5 2<br>13 total points, five spades: <b>open 1♠</b>`},
   {h:'Opening a minor',t:`<p>With no 5-card major, open your longer minor suit, ♣ or ♦. It may have only three or four cards.</p><p>With three of each minor, open 1♣. With four of each, open 1♦.</p>`},
-  {h:'Very strong hands',t:`<p>With 20–21 points and a balanced hand, open <b>2NT</b>.</p><p>With 22 or more points, open <b>2♣</b>. This is a special signal. It says "I'm very strong," not "I like clubs," and partner must keep bidding.</p>`}
+  {h:'Very strong hands',t:`<p>With 20–21 points and a balanced hand, open <b>2NT</b>.</p><p>With 22 or more points, open <b>2♣</b>. This is a special signal. It says "I'm very strong," not "I like clubs," and partner must keep bidding.</p><p>In the modern style, 2♦, 2♥ and 2♠ openings are weak. See Lesson 8.</p>`}
  ],exercise:{type:'open',cats:['1M','1m','1N','P','1M','big']}},
  {title:'Answering partner',blurb:'Responding to 1 of a suit',pages:[
   {h:'Should I respond?',t:`<p>When partner opens 1 of a suit, they have 13 or more points. If you have <b>6 or more</b>, you should bid. With fewer than 6, pass.</p><p>Your job now is to find a trump fit and decide how high to go.</p>`},
-  {h:'Supporting a major',t:`<p>If partner opens 1♥ or 1♠ and you hold three or more cards in that suit, you've found a fit. Count <b>support points</b>: your high cards plus extra for short suits. With four trumps, add 5 for a void, 3 for a singleton, 1 for a doubleton. With only three trumps, add 3, 2 and 1.</p><p>6–9: raise to 2. &nbsp;10–12: raise to 3. &nbsp;13 or more: jump to 4, a game.</p>`},
+  {h:'Supporting a major',t:`<p>If partner opens 1♥ or 1♠ and you hold three or more cards in that suit, you've found a fit. Count <b>support points</b>: your high cards plus extra for short suits. With four trumps, add 5 for a void, 3 for a singleton, 1 for a doubleton. With only three trumps, add 3, 2 and 1.</p><p>6–9: raise to 2. &nbsp;10–12: raise to 3.</p><p>13 or more: bid a new suit first (partner must bid again), then jump to game in partner's suit next time. A <i>direct</i> jump to 4 shows a weak hand with five trumps.</p>`},
   {h:'Showing a new suit',t:`<p>No fit yet? Show a 4-card or longer major at the one level, with 6+ points. With four hearts and four spades, bid hearts first.</p><p>A new suit at the two level needs <b>10+ points</b>. Any new suit you bid is forcing: partner must bid again.</p>`},
   {h:'No-trump answers',t:`<p>With nothing else to say, bid no trump:</p><p><b>1NT</b> shows 6–10 points.<br><b>2NT</b> shows 11–12 and invites game.<br><b>3NT</b> shows 13–15, enough for game.</p>`}
  ],exercise:{type:'respond',cats:['raise','new1','1N','P','new2','raise']}},
  {title:'Answering 1NT',blurb:'Responding to partner\'s 1NT',pages:[
   {h:'You are the captain',t:`<p>Partner's 1NT shows 15–17 points and a balanced hand. Add your points to theirs: if you have at least 25 together, bid game.</p><p>Since you know so much about partner's hand, you get to steer the auction.</p>`},
-  {h:'Weak hands',t:`<p>With <b>0–7 points</b>, game is out of reach. Pass.</p><p>But if you have a 5-card or longer suit other than clubs, bid 2 of it instead. Your long suit will play better than no trump, and partner will pass.</p>`},
+  {h:'Weak hands',t:`<p>With <b>0–7 points</b>, game is out of reach. Pass.</p><p>But if you have a 5-card or longer suit other than clubs, bid 2 of it instead. Your long suit will play better than no trump, and partner will pass. (Modern players use transfers here instead; see Lesson 9.)</p>`},
   {h:'Invite or bid game',t:`<p><b>8–9 points:</b> bid 2NT to invite game. Partner bids 3NT with a maximum.</p><p><b>10–15 points:</b> bid 3NT.</p><p>With a 5-card major and 10+, bid 3 of it so partner can choose. With a 6-card major and 10+, bid game in it.</p>`},
   {h:'Stayman',t:`<p>With 8+ points and a 4-card major (but no 5-card major), bid <b>2♣</b>. This asks, "Do you have a 4-card major?"</p><p>Partner answers 2♥, 2♠, or 2♦ for "no." If you match, raise the major. If not, bid no trump.</p>`}
  ],exercise:{type:'nt',cats:['P','stay','3N','2N','sign','major']}},
@@ -1037,7 +1133,19 @@ const LESSONS=[
   {q:'After Blackwood, you learn your side is missing two Aces. What should you do?',opts:['Bid 6 anyway','Stop at 5 of your suit','Bid 5NT to ask for Kings','Pass 4NT'],a:1,why:'With two Aces missing, the opponents can take two tricks right away, so stop at 5 of your suit.'},
   {q:'You bid 4♣ (Gerber) and partner answers 4♠. How many Aces does partner hold?',opts:['None','One','Two','Three'],a:2,why:'Over Gerber, 4♠ shows two Aces.'},
   {q:'Partner opened 1NT and you jumped to 4NT. What does that mean?',opts:['Blackwood, asking for Aces','An invitation to 6NT','Partner must pass','A sign-off in 4NT'],a:1,why:'After an all-notrump auction, 4NT invites slam. Partner bids 6NT with the top of their range.'}
- ]}}
+ ]}},
+ {title:'Weak two-bids',blurb:'Advanced: modern style',adv:true,pages:[
+  {h:'A different kind of opening',t:`<p>In modern bridge, an opening bid of <b>2♦, 2♥ or 2♠</b> is a <b>weak two-bid</b>. It shows a good six-card suit and a weak hand: about 5 to 10 high-card points.</p><p><b>2♣</b> is the only strong two-bid. Open it with 22 or more points, just as before.</p>`},
+  {h:'Why open a weak hand?',t:`<p>A weak two takes bidding room away from the opponents, and it tells partner almost exactly what you hold.</p><p>A good weak two has two of the top four honors (A, K, Q, J) in the suit, so partner can count on your six cards to take tricks.</p>`,ex:`♠ K Q J 9 7 4 &nbsp; ♥ 8 3 &nbsp; ♦ Q 6 2 &nbsp; ♣ 7 5<br>8 points, six good spades: <b>open 2♠</b>`},
+  {h:'Answering a weak two',t:`<p>Partner's weak two is a narrow range, so you're the captain.</p><p>With support and about 15+ points, bid game: 4♥ or 4♠. With support and a <b>weak</b> hand, raise to 3. That blocks the opponents; it doesn't invite game. Otherwise, usually pass.</p>`}
+ ],exercise:{type:'open',modern:true,cats:['weak2','1M','weak2','P','weak2','1m']}},
+ {title:'Jacoby transfers',blurb:'Advanced: modern style',adv:true,pages:[
+  {h:'The idea',t:`<p>When partner opens 1NT and you have five or more cards in a major suit, you usually want partner, the stronger hand, to be declarer.</p><p>A <b>Jacoby transfer</b> makes that happen, and it gives you an extra bid to describe your hand.</p>`},
+  {h:'How it works',t:`<p>Bid the suit just <b>below</b> your major:</p><p><b>2♦</b> says "I have 5+ hearts." &nbsp;<b>2♥</b> says "I have 5+ spades."</p><p>Partner must bid your suit: 2♦ → 2♥, and 2♥ → 2♠. You can transfer with any strength, even zero points.</p>`,ex:`Partner: 1NT &nbsp; You: 2♦ (hearts!) &nbsp; Partner: 2♥`},
+  {h:'Your next bid',t:`<p><b>0–7 points:</b> pass. Partner plays 2 of your major.</p><p><b>8–9:</b> bid 2NT with five cards, or 3 of your major with six. Both invite game.</p><p><b>10–15:</b> bid 3NT with five cards (partner picks 4 of your major with three-card support), or bid 4 of your major with six.</p>`},
+  {h:'Over 2NT, too',t:`<p>Transfers work over a 2NT opening one level higher: <b>3♦</b> for hearts, <b>3♥</b> for spades.</p><p>Stayman (2♣) still works the same way when you have a four-card major instead of a five-card one.</p>`}
+ ],exercise:{type:'nt',modern:true,cats:['xfer','xfer','stay','P','3N','xfer']}}
+
 
 ];
 
@@ -1048,7 +1156,7 @@ function renderHome(){
   LESSONS.forEach((L,i)=>{
     const done=!!store.lessons[i+1];
     const b=document.createElement('button');b.className='tile'+(done?' done':'');
-    b.innerHTML=`<span class="num">${i+1}</span><div class="tt">${L.title}</div><div class="ts">${L.blurb}</div>${done?'<span class="ck">✓</span>':''}`;
+    b.innerHTML=`<span class="num">${i+1}</span><div class="tt">${L.title}</div><div class="ts">${L.blurb}</div>${done?'<span class="ck">✓</span>':''}`;if(L.adv)b.classList.add('adv');
     b.onclick=()=>{sfx.tap();openLesson(i,0);};g.appendChild(b);
   });
   const lessonsDone=Object.keys(store.lessons).length;
@@ -1078,13 +1186,14 @@ $('lsNext').onclick=()=>{sfx.tap();const L=LESSONS[LS.i];if(LS.p<L.pages.length-
 /* exercises */
 let EX=null;
 function startExercise(i){
-  gen++;const X=LESSONS[i].exercise;let items=[];
+  gen++;const X=LESSONS[i].exercise;let items=[];const keepSys=SYS.modern;SYS.modern=!!X.modern;
   if(X.type==='quiz')items=X.items.map(q=>({kind:'quiz',...q}));
   else if(X.type==='points'){for(let k=0;k<X.n;k++){const h=dealHands().S;items.push({kind:'points',hand:h});}}
   else if(X.type==='open')items=shuffle(X.cats.slice()).map(c=>({kind:'bid',ctx:'open',...genOpeningEx(c)}));
   else if(X.type==='respond')items=X.cats.map(c=>({kind:'bid',ctx:'respond',...genRespondEx(c)}));
   else if(X.type==='nt')items=shuffle(X.cats.slice()).map(c=>({kind:'bid',ctx:'nt',...genNTEx(c)}));
   if(X.type==='respond')items=shuffle(items);
+  SYS.modern=keepSys;
   EX={lesson:i,items,k:0,score:0};
   show('scrEx');renderEx();
 }
@@ -1162,6 +1271,7 @@ function showResults(){
   const st=document.createElement('div');st.className='stack';
   if(i<LESSONS.length-1)st.appendChild(mkBtn(`Next lesson: ${LESSONS[i+1].title} ▶`,'primary',()=>{sfx.tap();openLesson(i+1,0);}));
   else st.appendChild(mkBtn('Play a Practice Hand ▶','primary',()=>{sfx.tap();startPractice();}));
+  if(LESSONS[i].adv&&!store.modern)st.appendChild(mkBtn('Use modern bidding in practice','brass',()=>{sfx.tap();setModern(true);renderHome();}));
   st.appendChild(mkBtn('Try these questions again','',()=>{sfx.tap();startExercise(i);}));
   st.appendChild(mkBtn('Back to Home','',()=>{sfx.tap();renderHome();}));
   r.appendChild(st);
@@ -1206,7 +1316,8 @@ function userTurnMsg(){
 function userBid(b){
   if(T.phase!=='bid'||T.turn!=='S')return;
   clearTimeout(auctionTimer);
-  if(T.mode==='jp'){T.auction.push({seat:'S',bid:b,means:''});sfx.bid();T.glow=null;coach(`You bid <b>${bidText(b)}</b>.`);T.turn=nextSeat('S');renderTable();schedAuction(950);return;}
+  if(T.mode==='jp'){const d=describeBid(T.auction,'S',b);T.auction.push({seat:'S',bid:b,means:d||''});sfx.bid();T.glow=null;
+    coach(b==='P'?`You pass${d&&d!=='Pass'?` (that shows: ${d})`:''}.`:d?`You bid <b>${bidText(b)}</b>. That tells partner: <b>${d}</b>.`:`You bid <b>${bidText(b)}</b>. It has no standard meaning here, so partner will treat it as natural.`);T.turn=nextSeat('S');renderTable();schedAuction(950);return;}
   const r=recommend(T.auction,'S',T.hands.S);
   if(b===r.bid){
     if(T.firstTry)store.bidsRight++;store.bidsTotal++;save();
@@ -1215,8 +1326,9 @@ function userBid(b){
     T.glow=null;T.turn=nextSeat('S');renderTable();
     schedAuction(1200);
   }else{
-    sfx.soft();T.firstTry=false;T.glow=r.bid;
-    coach(`<b>Not quite.</b> ${r.why} Tap <b>${bidText(r.bid)}</b> to continue.`,'warn');
+    sfx.soft();T.firstTry=false;T.glow=r.bid;const d=describeBid(T.auction,'S',b);
+    const said=b==='P'?(d&&d!=='Pass'?`Passing would tell partner: ${d}.`:''):d?`Your ${bidText(b)} would tell partner: <b>${d}</b>.`:`${bidText(b)} has no standard meaning here.`;
+    coach(`<b>Not quite.</b> ${said} ${r.why} Tap <b>${bidText(r.bid)}</b> to continue.`,'warn');
     renderTable();
   }
 }
@@ -1568,9 +1680,10 @@ function showHelp(){
   overlay(`<h2>Bidding cheat sheet</h2><div class="cheat">${colorize(`
   <h4>Counting points</h4><div>Ace 4, King 3, Queen 2, Jack 1. Add 1 for each card over four in a suit. 25 points together usually makes game.</div>
   <h4>Opening bids</h4><div>Under 13: Pass<br>13–21: open your longest suit (♥ or ♠ need 5 cards; otherwise your longer minor)<br>15–17 balanced: 1NT &nbsp;·&nbsp; 20–21 balanced: 2NT &nbsp;·&nbsp; 22+: 2♣</div>
-  <h4>Answering 1 of a suit</h4><div>Under 6: Pass<br>3+ cards in partner's major: raise to 2 (6–9), 3 (10–12) or 4 (13+)<br>New suit at the 1 level: 6+ &nbsp;·&nbsp; at the 2 level: 10+<br>1NT: 6–10 &nbsp;·&nbsp; 2NT: 11–12 &nbsp;·&nbsp; 3NT: 13–15</div>
+  <h4>Answering 1 of a suit</h4><div>Under 6: Pass<br>3+ cards in partner's major: raise to 2 (6–9) or 3 (10–12); with 13+, new suit first, then game<br>New suit at the 1 level: 6+ &nbsp;·&nbsp; at the 2 level: 10+<br>1NT: 6–10 &nbsp;·&nbsp; 2NT: 11–12 &nbsp;·&nbsp; 3NT: 13–15</div>
   <h4>Answering 1NT</h4><div>0–7: Pass, or bid 2♦/2♥/2♠ with a 5+ card suit<br>8–9: 2NT &nbsp;·&nbsp; 10–15: 3NT<br>2♣ (Stayman): 8+ points with a 4-card major</div>
-  <h4>Asking for aces</h4><div>Blackwood 4NT (after a suit is bid): 5♣ 0 or 4 · 5♦ 1 · 5♥ 2 · 5♠ 3. Then 5NT asks for kings.<br>Gerber 4♣ (over partner's notrump): 4♦ 0 or 4 · 4♥ 1 · 4♠ 2 · 4NT 3. Then 5♣ asks for kings.</div>`)}</div>`,[{label:'Close',cls:'primary'}]);
+  <h4>Asking for aces</h4><div>Blackwood 4NT (after a suit is bid): 5♣ 0 or 4 · 5♦ 1 · 5♥ 2 · 5♠ 3. Then 5NT asks for kings.<br>Gerber 4♣ (over partner's notrump): 4♦ 0 or 4 · 4♥ 1 · 4♠ 2 · 4NT 3. Then 5♣ asks for kings.</div>
+  <h4>Modern style</h4><div>Weak twos: 2♦/2♥/2♠ = six cards, 5–10 points. Jacoby over 1NT: 2♦ = hearts, 2♥ = spades.</div>`)}</div>`,[{label:'Close',cls:'primary'}]);
 }
 function showIntro(){
   overlay(`<h2>Welcome to Bridge Made Easy</h2><p>If you're new to bridge, start with Lesson 1. Each lesson is a few short pages followed by practice questions.</p><p>When you're ready, play a practice hand. The coach will help with every bid and every card. Tap <b>Hint</b> any time, and tap <b>?</b> at the top for a bidding cheat sheet.</p>`,[{label:"Let's begin",cls:'primary',fn:()=>{store.seenIntro=true;save();}}]);
@@ -1582,8 +1695,11 @@ $('soundBtn').onclick=()=>{store.sound=!store.sound;save();updateSoundBtn();sfx.
 $('practiceBtn').onclick=()=>{sfx.tap();startPractice();};
 $('chBtn').onclick=()=>{sfx.tap();openChallenges();};
 $('jpBtn').onclick=()=>{sfx.tap();startJP();};
+function setModern(on){store.modern=!!on;SYS.modern=!!on;save();$('sysBasic').classList.toggle('on',!on);$('sysModern').classList.toggle('on',!!on);}
+$('sysBasic').onclick=()=>{sfx.tap();setModern(false);};
+$('sysModern').onclick=()=>{sfx.tap();if(!store.modern)overlay(`<h2>Modern bidding</h2><p>Practice Hands and Just Play will use <b>weak two-bids</b> (2♦, 2♥ and 2♠ show six cards and 5–10 points) and <b>Jacoby transfers</b> over 1NT and 2NT.</p><p>Lessons 8 and 9 teach both.</p>`,[{label:'Use modern bidding',cls:'primary',fn:()=>setModern(true)},{label:'Not now'}]);};
 
-fit();updateSoundBtn();renderHome();
+fit();updateSoundBtn();setModern(!!store.modern);renderHome();
 if(!store.seenIntro)showIntro();
 </script>
 </body>
