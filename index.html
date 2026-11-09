@@ -13,7 +13,14 @@
   --ivory:#f7f2e6; --paper:#fffcf5; --ink:#23201c; --muted:#6a6259;
   --mahog:#5b2a22; --brass:#c39a4a; --brass-d:#8f6c2a; --brass-l:#f0d58f;
   --line:#e2d7c2; --red:#b3261e; --blk:#1c2430; --good:#2c7a4b; --soft:#b5482f;
+  --dia:var(--red); --clu:currentColor; --dia-l:#ff9d93; --clu-l:currentColor; --hea-l:#ff9d93;
 }
+.cH{color:var(--red)} .cD{color:var(--dia)} .cC{color:var(--clu)}
+.card.cS,.card.cC{color:var(--blk);box-shadow:0 0 0 2px #2b2b2b,1px 2px 4px rgba(0,0,0,.25)}
+.card.cH,.card.cD{color:var(--red);box-shadow:0 0 0 2px var(--red),1px 2px 4px rgba(0,0,0,.25)}
+.auction .cH,.htxt .cH{color:var(--hea-l)} .auction .cD,.htxt .cD{color:var(--dia-l)} .auction .cC,.htxt .cC{color:var(--clu-l)}
+.bb.sel .cH,.bb.sel .cD{color:#ffb3ab}
+
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;background:#d9cfbd;font-family:'Nunito Sans',system-ui,-apple-system,Segoe UI,sans-serif;color:var(--ink);-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
 #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
@@ -44,7 +51,7 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 #lessonGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tile.adv{background:#f4efe2}
 .tile.adv .num{background:var(--mahog)}
-.styleRow{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:14px;font-size:21px;font-weight:700;color:var(--muted)}
+.styleRow{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;font-size:21px;font-weight:700;color:var(--muted)}
 .styleRow .btn{min-height:50px;font-size:21px;padding:0 20px}
 .styleRow .btn.on{background:var(--baize);color:#fff;box-shadow:0 3px 0 var(--baize-d)}
 #lessonGrid .tile:last-child:nth-child(odd){grid-column:1 / -1}
@@ -106,10 +113,11 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 /* cards */
 .handbox{position:relative;width:760px;height:142px;margin:0 auto}
 .card{position:absolute;top:8px;width:92px;height:130px;border-radius:10px;background:#fff;box-shadow:0 0 0 1.5px #cfc5b2,1px 2px 4px rgba(0,0,0,.25);transition:transform .15s ease}
-.card .ix{position:absolute;left:5px;top:4px;width:46px;display:flex;flex-direction:column;align-items:center;line-height:1}
-.card .rk{font-size:33px;font-weight:800;letter-spacing:-1px}
-.card .st{font-size:31px;margin-top:2px}
-.card .pip{position:absolute;right:9px;bottom:6px;font-size:54px;line-height:1}
+.card .ix{position:absolute;left:3px;top:4px;width:52px;display:flex;flex-direction:column;align-items:center;line-height:.95}
+.card .rk{font-size:43px;font-weight:800;letter-spacing:-2.5px;font-family:Arial,'Helvetica Neue',sans-serif}
+.card .st{font-size:58px;margin-top:-2px;font-family:Arial,'Segoe UI Symbol','Apple Symbols',sans-serif}
+.card .pip{position:absolute;right:8px;bottom:4px;font-size:40px;line-height:1}
+.handbox .card:not(:last-child) .pip{display:none}
 .card.back{background:repeating-linear-gradient(45deg,#7a2f2a 0 6px,#69261f 6px 12px);box-shadow:0 0 0 3px #fff inset,0 0 0 1.5px #cfc5b2,1px 2px 3px rgba(0,0,0,.25)}
 .card.small{width:60px;height:86px;top:30px}
 .card.playable{cursor:pointer}
@@ -148,7 +156,6 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 .auction .ns{color:#fff}
 .auction .ew{opacity:.6}
 .auction .q{display:inline-block;background:var(--brass-l);color:var(--ink);border-radius:8px;padding:0 12px}
-.auction .red{color:#ff9d93}
 .bottom{flex:1;background:var(--ivory);padding:12px 16px 14px;display:flex;flex-direction:column;gap:10px;border-radius:18px 18px 0 0}
 #tCoach{flex:1;min-height:0}
 .controls{display:flex;flex-direction:column;gap:8px}
@@ -157,8 +164,6 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 .bb{font-size:30px}
 .bb.sel{background:var(--baize);color:#fff;box-shadow:0 4px 0 var(--baize-d)}
 .bb.glow{box-shadow:0 0 0 4px var(--brass),0 0 14px 2px rgba(195,154,74,.8)}
-.bb .red{color:var(--red)}
-.bb.sel .red{color:#ffb3ab}
 .pass{background:#e6efe9;box-shadow:inset 0 0 0 2px #b9d1c3,0 3px 0 #b9d1c3}
 
 /* overlay */
@@ -192,7 +197,6 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 .dealRow .ds.x{color:var(--soft);font-weight:800}
 .dealRow .ds.s{color:#d9a21b}
 .htxt{font-size:19px;line-height:1.3;font-weight:700;color:var(--ivory);text-align:left;letter-spacing:-.3px}
-.htxt .red{color:#ff9d93}
 @media (prefers-reduced-motion:reduce){.card{transition:none}}
 </style>
 </head>
@@ -207,7 +211,7 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 
   <section id="scrHome" class="screen on">
     <div class="hero">
-      <div class="suitrow">♠<span class="red">♥</span><span class="red">♦</span>♣</div>
+      <div class="suitrow">♠<span class="cH">♥</span><span class="cD">♦</span><span class="cC">♣</span></div>
       <h1>Learn to play bridge</h1>
       <p>Standard American bidding, taught one step at a time. Short lessons first, then practice hands with a coach at your side.</p>
     </div>
@@ -976,7 +980,8 @@ function later(fn,ms){const g=gen;setTimeout(()=>{if(g===gen)fn();},ms);}
 let playTimer=null,auctionTimer=null;
 function schedPlay(ms){clearTimeout(playTimer);const g=gen;playTimer=setTimeout(()=>{if(g===gen)stepPlay();},ms);}
 function schedAuction(ms){clearTimeout(auctionTimer);const g=gen;auctionTimer=setTimeout(()=>{if(g===gen)stepAuction();},ms);}
-function colorize(t){return String(t).replace(/[♥♦]/g,m=>`<span class="red">${m}</span>`);}
+const SUITCLS={'♠':'cS','♥':'cH','♦':'cD','♣':'cC'};
+function colorize(t){return String(t).replace(/[♠♥♦♣]/g,m=>`<span class="${SUITCLS[m]}">${m}</span>`);}
 
 /* sound */
 let AC=null;
@@ -1005,7 +1010,7 @@ function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.to
 function cardEl(c,down){
   const d=document.createElement('div');d.className='card';
   if(down){d.classList.add('back');return d;}
-  d.classList.add(c.s==='H'||c.s==='D'?'red':'blk');
+  d.classList.add('c'+c.s);
   d.innerHTML=`<div class="ix"><span class="rk">${rankStr(c.r)}</span><span class="st">${SYM[c.s]}</span></div><div class="pip">${SYM[c.s]}</div>`;
   d.setAttribute('aria-label',rankStr(c.r)+' of '+SNAME[c.s]);
   return d;
