@@ -964,7 +964,12 @@ function describeBid(auction,seat,bid){
     const r=recommend(auction,seat,h);if(r.bid!==bid)continue;
     hits++;counts[r.means]=(counts[r.means]||0)+1;
   }
-  if(hits<4)return null;
+  if(hits<4){
+    const sideOpened=auction.some(x=>isNS(x.seat)===isNS(seat)&&x.bid!=='P');
+    if(!sideOpened&&bid!=='P'&&bid[1]!=='N'&&(+bid[0]===3||(+bid[0]===4&&bid[1]!=='C')||(+bid[0]===5&&(bid[1]==='C'||bid[1]==='D'))))
+      return `Pre-emptive opening: a weak hand with a long ${SNAME[bid[1]].slice(0,-1)} suit (7+ cards)`;
+    return null;
+  }
   return Object.entries(counts).sort((a,b)=>b[1]-a[1])[0][0];
 }
 // ENGINE END
@@ -1053,14 +1058,21 @@ function bidBox(el,opts){
     const bid=opts.level?opts.level+s:null;
     b.disabled=!en||!bid||(lb&&bidVal(bid)<=bidVal(lb));
     if(g&&g!=='P'&&g[1]===s&&opts.level===+g[0])b.classList.add('glow');
+    if(opts.pending&&opts.pending!=='P'&&opts.pending===opts.level+s)b.classList.add('sel');
     b.setAttribute('aria-label',s==='N'?'No trump':SNAME[s]);
-    b.onclick=()=>{const bd=opts.level+s;opts.level=null;opts.onBid(bd);};
+    b.onclick=()=>{const bd=opts.level+s;if(opts.onPreview){sfx.tap();opts.pending=bd;bidBox(el,opts);opts.onPreview(bd);return;}opts.level=null;opts.onBid(bd);};
     r2.appendChild(b);
   }
   const r3=document.createElement('div');r3.className='crow';
+  if(opts.pending&&en){
+    const bd=opts.pending;
+    r3.appendChild(mkBtn(`✓ ${bd==='P'?'Pass':'Bid '+colorize(bidText(bd))}`,'primary',()=>{opts.pending=null;opts.level=null;opts.onBid(bd);}));
+    r3.appendChild(mkBtn('Change','',()=>{sfx.tap();opts.pending=null;bidBox(el,opts);opts.onCancel&&opts.onCancel();}));
+    el.append(r1,r2,r3);return;
+  }
   const p=document.createElement('button');p.className='btn pass';p.textContent='Pass';p.disabled=!en;
   if(g==='P')p.classList.add('glow');
-  p.onclick=()=>{opts.level=null;opts.onBid('P');};
+  p.onclick=()=>{if(opts.onPreview){sfx.tap();opts.pending='P';opts.level=null;bidBox(el,opts);opts.onPreview('P');return;}opts.level=null;opts.onBid('P');};
   r3.appendChild(p);
   (opts.extra||[]).forEach(x=>r3.appendChild(x));
   el.append(r1,r2,r3);
@@ -1336,6 +1348,13 @@ function userBid(b){
     coach(`<b>Not quite.</b> ${said} ${r.why} Tap <b>${bidText(r.bid)}</b> to continue.`,'warn');
     renderTable();
   }
+}
+function previewBid(b){
+  if(T.phase!=='bid'||T.turn!=='S')return;
+  const d=describeBid(T.auction,'S',b);
+  coach(b==='P'?(d&&d!=='Pass'?`<b>Pass</b> would tell partner: <b>${d}</b>.`:`<b>Pass</b>.`)+' Tap ✓ to pass, or Change.'
+    :d?`<b>${bidText(b)}</b> would tell partner: <b>${d}</b>. Tap ✓ to bid it, or Change.`
+      :`<b>${bidText(b)}</b> has no standard meaning here, so partner would treat it as natural. Tap ✓ to bid it, or Change.`);
 }
 function bidHint(){const r=recommend(T.auction,'S',T.hands.S);if(T.mode==='jp'){coach(`<b>Hint:</b> ${r.why}`);return;}T.firstTry=false;T.glow=r.bid;coach(`<b>Hint:</b> ${r.why}`);renderTable();}
 function endAuction(){
@@ -1643,7 +1662,7 @@ function renderTable(){
   }
   const ctl=$('tControls');ctl.innerHTML='';
   if(ph==='bid'){
-    const o=T.bbOpts;o.lastBid=lastBid(T.auction);o.enabled=T.turn==='S';o.glow=T.glow;o.onBid=userBid;
+    const o=T.bbOpts;o.lastBid=lastBid(T.auction);o.enabled=T.turn==='S';o.glow=T.glow;o.onBid=userBid;o.onPreview=previewBid;o.onCancel=()=>{if(T.mode==='jp')jpTurnMsg();else userTurnMsg();};if(T.turn!=='S')o.pending=null;
     o.extra=[mkBtn('💡 Hint','brass',bidHint,T.turn!=='S')];
     bidBox(ctl,o);
   }else if(ph==='ready'){
