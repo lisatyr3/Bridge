@@ -130,7 +130,19 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 #scrTable{background:var(--baize)}
 .tBar{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 22px;background:var(--baize-d);color:var(--ivory);font-size:22px;border-top:1px solid rgba(255,255,255,.08)}
 .tBar b{font-weight:800}
-.tBar .pill{background:var(--ivory);color:var(--ink);border-radius:9px;padding:1px 12px;font-weight:800}
+.tBar .pill{background:var(--ivory);color:var(--ink);border-radius:9px;padding:1px 10px;font-weight:800}
+.tBar{font-size:20px!important;gap:10px}
+.bidsBtn{background:rgba(255,255,255,.15);border-radius:9px;padding:3px 10px;font-weight:800;cursor:pointer;white-space:nowrap}
+.apop{position:absolute;top:52px;left:60px;right:60px;background:var(--baize-d);border-radius:0 0 18px 18px;padding:6px 10px 10px;z-index:30;display:none;box-shadow:0 10px 24px rgba(0,0,0,.4)}
+.apop.on{display:block}
+.apop .auction{position:relative;inset:auto}
+.atip{margin-top:6px;font-size:19px;line-height:1.3;color:var(--ivory);opacity:.6;text-align:center;min-height:25px}
+.atip.on{opacity:1}
+.auction:not(.x) .atip{position:absolute;left:0;right:0;bottom:-4px}
+.apop .auction .atip{position:static!important;margin-top:8px}
+.ab{cursor:pointer;border-radius:6px;padding:0 4px}
+.ab:hover{background:rgba(255,255,255,.14)}
+.btn.dbl{flex:.8;font-size:22px;background:#f6e3e1;box-shadow:inset 0 0 0 2px #e3c2bd,0 3px 0 #e3c2bd}
 .seat{height:176px;display:flex;flex-direction:column;justify-content:center}
 .seatLabel{height:34px;display:flex;align-items:center;justify-content:center;gap:10px;color:var(--ivory);font-size:22px;font-weight:700}
 .tag{background:rgba(255,255,255,.16);border-radius:8px;padding:0 10px;font-size:18px}
@@ -152,7 +164,7 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 .auction{position:absolute;inset:14px 18px;color:var(--ivory)}
 .auction table{width:100%;border-collapse:collapse;table-layout:fixed}
 .auction th{font-size:19px;font-weight:700;opacity:.8;padding-bottom:6px;border-bottom:1px solid rgba(255,255,255,.2)}
-.auction td{text-align:center;font-size:27px;font-weight:700;height:40px}
+.auction td{text-align:center;font-size:25px;font-weight:700;height:35px}
 .auction .ns{color:#fff}
 .auction .ew{opacity:.6}
 .auction .q{display:inline-block;background:var(--brass-l);color:var(--ink);border-radius:8px;padding:0 12px}
@@ -173,7 +185,7 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 .modal h2{font-family:'Playfair Display',Georgia,serif;font-size:40px;color:var(--baize-d);margin-bottom:14px;line-height:1.15}
 .modal p{font-size:25px;line-height:1.5;margin-bottom:14px}
 .modal .stack{margin-top:22px}
-.cheat{font-size:21px;line-height:1.38}
+.cheat{font-size:19px;line-height:1.32}
 .cheat h4{font-size:22px;font-weight:800;color:var(--brass-d);margin:12px 0 4px}
 .cheat div{margin-left:4px}
 
@@ -250,6 +262,7 @@ header .hb{min-height:56px;min-width:56px;padding:0 14px;font-size:22px;backgrou
 
   <section id="scrTable" class="screen">
     <div class="tBar" id="tBar"></div>
+    <div class="apop" id="auctionPop"></div>
     <div class="seat"><div class="seatLabel" id="nLabel"></div><div class="handbox" id="nHand"></div></div>
     <div class="middle"><div class="side" id="wBox"></div><div class="center" id="center"></div><div class="side" id="eBox"></div></div>
     <div class="seat"><div class="handbox" id="sHand"></div><div class="seatLabel" id="sLabel"></div></div>
@@ -286,16 +299,25 @@ function supportPts(h,trump){const L=lens(h),four=L[trump]>=4;let p=hcp(h);for(c
 function isMajor(s){return s==='H'||s==='S';}
 function rankOf(s){return STRAINS.indexOf(s);}
 function bidVal(b){return (+b[0]-1)*5+rankOf(b[1]);}
-function bidText(b){if(b==='P')return 'Pass';return b[0]+(b[1]==='N'?'NT':SYM[b[1]]);}
+function bidText(b){if(b==='P')return 'Pass';if(b==='X')return 'Double';if(b==='XX')return 'Redouble';return b[0]+(b[1]==='N'?'NT':SYM[b[1]]);}
+function isRealBid(b){return !!b&&b!=='P'&&b!=='X'&&b!=='XX';}
+function sideOf(s){return isNS(s)?'NS':'EW';}
+function lastAction(a){for(let i=a.length-1;i>=0;i--)if(a[i].bid!=='P')return a[i];return null;}
+function turnSeat(a){return a.length?nextSeat(a[a.length-1].seat):null;}
+function stopper(h,s){const c=h.filter(x=>x.s===s),n=c.length;return c.some(x=>x.r===14)||(n>=2&&c.some(x=>x.r===13))||(n>=3&&c.some(x=>x.r===12))||(n>=4&&c.some(x=>x.r===11));}
 function cardTxt(c){return rankStr(c.r)+SYM[c.s];}
-function lastBid(a){for(let i=a.length-1;i>=0;i--)if(a[i].bid!=='P')return a[i].bid;return null;}
-function isLegal(bid,a){if(bid==='P')return true;const lb=lastBid(a);return !lb||bidVal(bid)>bidVal(lb);}
+function lastBid(a){for(let i=a.length-1;i>=0;i--)if(isRealBid(a[i].bid))return a[i].bid;return null;}
+function isLegal(bid,a){if(bid==='P')return true;
+  if(bid==='X'||bid==='XX'){const la=lastAction(a),t=turnSeat(a);if(!la||!t)return false;const opp=sideOf(la.seat)!==sideOf(t);return bid==='X'?(opp&&isRealBid(la.bid)):(opp&&la.bid==='X');}
+  const lb=lastBid(a);return !lb||bidVal(bid)>bidVal(lb);}
 function cheapestLevel(strain,after){for(let l=1;l<=7;l++){if(!after||bidVal(l+strain)>bidVal(after))return l;}return 8;}
 function auctionOver(a){if(a.length<3)return false;if(!a.slice(-3).every(x=>x.bid==='P'))return false;return a.some(x=>x.bid!=='P')||a.length>=4;}
-function getContract(a){const lb=lastBid(a);if(!lb)return null;let idx=-1;for(let i=a.length-1;i>=0;i--)if(a[i].bid!=='P'){idx=i;break;}
+function getContract(a){const lb=lastBid(a);if(!lb)return null;let idx=-1;for(let i=a.length-1;i>=0;i--)if(isRealBid(a[i].bid)){idx=i;break;}
   const side=a[idx].seat,strain=lb[1];let decl=side;
-  for(const x of a){if(x.bid!=='P'&&x.bid[1]===strain&&(x.seat===side||x.seat===partnerOf(side))){decl=x.seat;break;}}
-  return {level:+lb[0],strain,declarer:decl,bid:lb};}
+  for(const x of a){if(isRealBid(x.bid)&&x.bid[1]===strain&&(x.seat===side||x.seat===partnerOf(side))){decl=x.seat;break;}}
+  let dbl=0;for(const x of a.slice(idx+1)){if(x.bid==='X')dbl=1;if(x.bid==='XX')dbl=2;}
+  return {level:+lb[0],strain,declarer:decl,bid:lb,dbl};}
+function contractText(c){return bidText(c.bid)+(c.dbl===2?' redoubled':c.dbl===1?' doubled':'');}
 
 const SYS={modern:false};
 function topHonors(h,s){return h.filter(c=>c.s===s&&c.r>=11).length;}
@@ -303,26 +325,30 @@ function R(bid,why,means){return {bid,why,means:means||''};}
 const PASS_DONE=()=>R('P','Your side has reached its contract. Pass.','Pass');
 
 function recommend(auction,seat,hand){
-  if(!isNS(seat))return R('P','The opponents stay quiet in practice hands.','Pass');
-  const ns=auction.filter(x=>isNS(x.seat));
-  const fi=ns.findIndex(x=>x.bid!=='P');
-  let r;
-  if(fi<0) r=openingBid(hand);
-  else{
-    const seq=ns.slice(fi).filter(x=>x.bid!=='P').map(x=>x.bid);
-    const role=ns[fi].seat===seat?'O':'R';
-    r=conventionReply(auction,seat,hand)||askerPlace(auction,seat,hand)||continueBid(seq,role,hand);
-  }
-  if(!isLegal(r.bid,auction)) r=R('P','There is no sensible higher bid to make, so pass.','Pass');
+  let r=recommendInner(auction,seat,hand);
+  if(!isLegal(r.bid,auction)){const p=placement(auction,seat,hand);r=isLegal(p.bid,auction)?p:R('P','There is no sensible higher bid to make, so pass.','Pass');}
   return r;
+}
+function recommendInner(auction,seat,hand){
+  const me=x=>sideOf(x.seat)===sideOf(seat);
+  const fiAll=auction.findIndex(x=>x.bid!=='P');
+  if(fiAll<0) return openingBid(hand);
+  const opener=auction[fiAll].seat;
+  if(sideOf(opener)!==sideOf(seat)) return defending(auction,seat,hand);
+  const theyActed=auction.some(x=>!me(x)&&x.bid!=='P');
+  if(theyActed) return contestedOurs(auction,seat,hand,opener);
+  const ours=auction.filter(me),fi=ours.findIndex(x=>x.bid!=='P');
+  const seq=ours.slice(fi).filter(x=>isRealBid(x.bid)).map(x=>x.bid);
+  const role=ours[fi].seat===seat?'O':'R';
+  return conventionReply(auction,seat,hand)||askerPlace(auction,seat,hand)||continueBid(seq,role,hand);
 }
 
 /* ---- Blackwood, Gerber and quantitative 4NT (the robot partner answers; the asker places the contract) ---- */
 function aceCount(h){return h.filter(c=>c.r===14).length;}
 function kingCount(h){return h.filter(c=>c.r===13).length;}
 function naturalSuitBid(ns,i){
-  const b=ns[i].bid;if(b==='P'||b[1]==='N')return false;
-  const prev=ns.slice(0,i).filter(x=>x.bid!=='P').map(x=>x.bid);
+  const b=ns[i].bid;if(!isRealBid(b)||b[1]==='N')return false;
+  const prev=ns.slice(0,i).filter(x=>isRealBid(x.bid)).map(x=>x.bid);
   if(b==='2C'&&(prev[prev.length-1]==='1N'||prev[prev.length-1]==='2N'))return false; // Stayman
   if(b==='2C'&&prev.length===0)return false;                                          // strong 2C
   if(b==='2D'&&(prev[prev.length-1]==='2C'))return false;                              // Stayman / waiting answers
@@ -333,7 +359,7 @@ function naturalSuitBid(ns,i){
   return true;
 }
 function conventionReply(auction,seat,hand){
-  const ns=auction.filter(x=>isNS(x.seat)&&x.bid!=='P');
+  const ns=auction.filter(x=>sideOf(x.seat)===sideOf(seat)&&isRealBid(x.bid));
   if(!ns.length)return null;
   const last=ns[ns.length-1];
   if(last.seat===seat)return null;            // partner must have made the last bid
@@ -367,7 +393,7 @@ function conventionReply(auction,seat,hand){
   return null;
 }
 function askerPlace(auction,seat,hand){
-  const ns=auction.filter(x=>isNS(x.seat)&&x.bid!=='P');if(ns.length<2)return null;
+  const ns=auction.filter(x=>sideOf(x.seat)===sideOf(seat)&&isRealBid(x.bid));if(ns.length<2)return null;
   const last=ns[ns.length-1],ask=ns[ns.length-2];
   if(last.seat===seat||ask.seat!==seat||ask.bid!=='4N'||lastBid(auction)!==last.bid)return null;
   if(!['5C','5D','5H','5S'].includes(last.bid)||!ns.slice(0,-2).some((_,j)=>naturalSuitBid(ns,j)))return null;
@@ -379,6 +405,166 @@ function askerPlace(auction,seat,hand){
   if(missing>=2){const b='5'+st;return bidVal(b)>bidVal(last.bid)?R(b,`Your side is missing ${missing} Aces, so slam is too risky. Stop at ${bidText(b)}.`,'Sign-off'):R('P',`Your side is missing ${missing} Aces. Stop here.`,'Sign-off');}
   const b='6'+st;
   return R(b,`Your side has ${4-missing} of the 4 Aces${missing?', missing just one':''}. Bid the slam: ${bidText(b)}.`,'Slam');
+}
+
+/* ---- competitive bidding ---- */
+function oppSuitsOf(auction,seat){return [...new Set(auction.filter(x=>sideOf(x.seat)!==sideOf(seat)&&isRealBid(x.bid)&&x.bid[1]!=='N').map(x=>x.bid[1]))];}
+function bestSuit(L,cands){let b=null;for(const s of cands)if(!b||L[s]>L[b]||(L[s]===L[b]&&rankOf(s)>rankOf(b)))b=s;return b;}
+function partnerMin(auction,seat){
+  const ps=partnerOf(seat),fi=auction.findIndex(x=>x.bid!=='P');if(fi<0)return 0;
+  const pi=auction.findIndex(x=>x.seat===ps&&x.bid!=='P');if(pi<0)return 0;
+  const b=auction[pi].bid;
+  if(fi===pi){if(b==='1N')return 15;if(b==='2N')return 20;if(b==='2C')return 22;if(SYS.modern&&b[0]==='2')return 6;return 13;}
+  const theyOpened=sideOf(auction[fi].seat)!==sideOf(seat);
+  const mi=auction.findIndex(x=>x.seat===seat&&x.bid!=='P');
+  if(theyOpened&&(mi<0||pi<mi)){if(b==='X')return 12;if(b[1]==='N')return 15;return +b[0]>=2?11:8;}
+  return 6;
+}
+function placement(auction,seat,hand){
+  const H=hcp(hand),L=lens(hand),lb=lastBid(auction);
+  if(!lb)return R('P','Pass.','Pass');
+  const me=s=>sideOf(s)===sideOf(seat),ps=partnerOf(seat);
+  const lastReal=[...auction].reverse().find(x=>isRealBid(x.bid)),weHold=me(lastReal.seat);
+  const opp=oppSuitsOf(auction,seat);
+  const pB=auction.filter(x=>x.seat===ps&&isRealBid(x.bid)&&x.bid[1]!=='N'),mB=auction.filter(x=>x.seat===seat&&isRealBid(x.bid)&&x.bid[1]!=='N');
+  let fit=null,fitLen=0;
+  pB.forEach((x,i)=>{const s=x.bid[1];if(opp.includes(s))return;const pl=i===0?(isMajor(s)?5:4):4,len=L[s]+pl;if(L[s]>=3&&len>=8&&len>fitLen){fit=s;fitLen=len;}});
+  mB.forEach(x=>{const s=x.bid[1];if(pB.some(p=>p.bid[1]===s)&&L[s]+3>fitLen){fit=s;fitLen=L[s]+3;}});
+  const pm=partnerMin(auction,seat),pts=(fit?supportPts(hand,fit):H)+pm;
+  if(fit){
+    if(pts>=25&&isMajor(fit)){const g='4'+fit;if(weHold&&lastReal.bid===g)return R('P','Your side is in game. Pass.','Pass');if(isLegal(g,auction))return R(g,`You and partner have a ${SNAME[fit]} fit and about ${pts} points together: enough for game. Bid ${bidText(g)}.`,'Game');}
+    if(weHold)return R('P','Your side is already in its fit. Pass.','Pass');
+    const law=Math.max(2,fitLen-6),l=cheapestLevel(fit,lb);
+    if(l<=law&&l<=4)return R(l+fit,`The opponents are competing. You and partner hold about ${fitLen} ${SNAME[fit]}, so compete to ${bidText(l+fit)}.`,`Competing in ${SNAME[fit]}`);
+    return R('P','The bidding is too high to compete further. Pass.','Pass');
+  }
+  if(pts>=25&&opp.every(s=>stopper(hand,s))&&isLegal('3N',auction)&&!(weHold&&lastReal.bid[1]==='N'))return R('3N',`You have about ${pts} points together and a stopper in the opponents' suit. Bid 3NT.`,'Game');
+  if(!weHold){const s=SUITS.filter(x=>!opp.includes(x)&&L[x]>=6).sort((a,b)=>L[b]-L[a])[0];
+    if(s&&H>=6){const l=cheapestLevel(s,lb);if(l<=2)return R(l+s,`With six ${SNAME[s]}, compete with ${bidText(l+s)}.`,`6+ ${SNAME[s]}`);}}
+  return R('P','Nothing more to add. Pass.','Pass');
+}
+function overcallAction(auction,seat,hand){
+  const lb=lastBid(auction),H=hcp(hand),L=lens(hand);
+  const oppReal=auction.filter(x=>sideOf(x.seat)!==sideOf(seat)&&isRealBid(x.bid)).map(x=>x.bid);
+  if(['1N','2N','2C'].includes(oppReal[0])||oppReal.some(b=>b[1]==='N'))return R('P','The opponents have shown a strong or balanced hand. Pass.','Pass');
+  if(+lb[0]>=3)return R('P','The bidding is already high. Pass.','Pass');
+  const opp=oppSuitsOf(auction,seat),unbid=SUITS.filter(s=>!opp.includes(s));
+  const n=auction.length,bal=n>=3&&auction[n-1].bid==='P'&&auction[n-2].bid==='P'&&+lb[0]===1&&oppReal.length===1;
+  if(bal){
+    const os=lb[1];
+    if(isBalanced(hand)&&H>=12&&H<=15&&stopper(hand,os))return R('1N',`The opponents are about to stop at ${bidText(lb)}, and your side may have more strength. In this "balancing" seat, 1NT shows about 12–15 points with a stopper.`,'Balancing: 12–15 points, stopper');
+    const c=unbid.filter(s=>L[s]>=5),s=bestSuit(L,c);
+    if(s&&H>=7){const l=cheapestLevel(s,lb);if(l===1||H>=10)return R(l+s,`Don't let the opponents play at the one level so cheaply. Balance with ${bidText(l+s)}: in this seat you can bid a little lighter, since partner probably has some strength.`,`Balancing: 7+ points, 5+ ${SNAME[s]}`);}
+    if(H>=9&&L[os]<=3&&isLegal('X',auction))return R('X',`The opponents are about to stop at ${bidText(lb)}. Balance with a takeout double: in this seat it can be a little lighter, about 9+ points.`,'Balancing double: 9+ points');
+  }
+  if(+lb[0]===1&&isBalanced(hand)&&H>=15&&H<=18&&opp.every(s=>stopper(hand,s))&&isLegal('1N',auction))
+    return R('1N',`You have ${H} points, a balanced hand and a stopper in their suit. Overcall 1NT, which shows 15–18.`,'15–18 points, balanced, stopper in their suit');
+  if(H>=17&&isLegal('X',auction))return R('X',`With ${H} points, start with a double. You can show your own suit or notrump next time.`,'Takeout double: 12+ points (or a very strong hand)');
+  const c=unbid.filter(s=>L[s]>=5&&(topHonors(hand,s)>=2||L[s]>=6)),s=bestSuit(L,c);
+  if(s){const l=cheapestLevel(s,lb);
+    if(l===1&&H>=8)return R('1'+s,`You have ${H} points and a good ${L[s]}-card ${SNAME[s].slice(0,-1)} suit. Overcall 1${SYM[s]}.`,`Overcall: 8–16 points, good 5+ ${SNAME[s]}`);
+    if(l===2&&H>=11)return R('2'+s,`You have ${H} points and a good ${L[s]}-card ${SNAME[s].slice(0,-1)} suit. Overcall 2${SYM[s]}; the two level needs a strong suit and 11+ points.`,`Overcall: 11–16 points, good 5+ ${SNAME[s]}`);}
+  if(H>=12&&opp.every(x=>L[x]<=2)&&unbid.every(x=>L[x]>=3)&&isLegal('X',auction))
+    return R('X',`You have ${H} points, shortness in their suit and support for the others. Make a takeout double: it asks partner to pick a suit.`,'Takeout double: 12+ points, short in their suit');
+  return R('P',`With ${H} points and no good suit to show, pass.`,'Pass');
+}
+function advance(auction,seat,hand,pb){
+  const lb=lastBid(auction),H=hcp(hand),L=lens(hand),rho=auction[auction.length-1],free=rho&&rho.bid!=='P';
+  const opp=oppSuitsOf(auction,seat),unbid=SUITS.filter(s=>!opp.includes(s));
+  if(pb==='X'){
+    if(free&&H<6)return R('P','The opponent bid after partner\'s double, so you no longer have to answer. With a weak hand, pass.','Pass');
+    const maj=unbid.filter(s=>isMajor(s)&&L[s]>=4),s=maj.length?bestSuit(L,maj):bestSuit(L,unbid);
+    if(H>=12){if(isMajor(s)&&L[s]>=4&&isLegal('4'+s,auction))return R('4'+s,`Partner's double shows support for ${SNAME[s]}, and you have ${H} points. Bid game: 4${SYM[s]}.`,'Game');
+      if(opp.every(x=>stopper(hand,x))&&isLegal('3N',auction))return R('3N',`With ${H} points and a stopper in their suit, bid 3NT.`,'Game');}
+    if(H>=6&&H<=10&&isBalanced(hand)&&L[s]<4&&opp.every(x=>stopper(hand,x))&&isLegal('1N',auction))return R('1N',`With ${H} points, a balanced hand and a stopper in their suit, answer 1NT.`,'6–10 points, stopper in their suit');
+    const l=cheapestLevel(s,lb),lv=H>=9?l+1:l;
+    return R(lv+s,H>=9?`Partner's takeout double asks you to pick a suit. With ${H} points, jump to ${bidText(lv+s)} to show a good hand.`:`Partner's takeout double asks you to pick a suit, even with a weak hand. Your best suit is ${SNAME[s]}: bid ${bidText(lv+s)}.`,H>=9?`9–11 points, ${L[s]}+ ${SNAME[s]}`:`0–8 points, ${L[s]}+ ${SNAME[s]}`);
+  }
+  if(pb[1]==='N'){if(H>=10&&isLegal('3N',auction))return R('3N',`Partner's 1NT overcall shows 15–18. With ${H}, bid 3NT.`,'Game');
+    if(H>=8&&isLegal('2N',auction))return R('2N',`With ${H} points, invite game with 2NT.`,'Invites game');return R('P','Pass.','Pass');}
+  const ps=pb[1];
+  if(L[ps]>=3){const sp=supportPts(hand,ps),l=cheapestLevel(ps,lb);
+    if(sp>=13&&isMajor(ps)&&isLegal('4'+ps,auction))return R('4'+ps,`Partner overcalled ${SNAME[ps]} and you have ${L[ps]} of them with ${sp} support points. Bid game: 4${SYM[ps]}.`,'Game');
+    if(sp>=10&&l<=2)return R((l+1)+ps,`You have ${L[ps]}-card support and ${sp} support points. Jump to ${bidText((l+1)+ps)} to invite game.`,`10–12 points, ${SNAME[ps]} support`);
+    if(sp>=6&&l<=2)return R(l+ps,`You have ${L[ps]}-card support for partner's overcall. Raise to ${bidText(l+ps)}.`,`6–9 points, ${SNAME[ps]} support`);
+    if(sp>=6&&L[ps]>=4&&l===3)return R('3'+ps,`With four-card support, compete to 3${SYM[ps]}.`,`Competing in ${SNAME[ps]}`);}
+  if(H>=12&&opp.every(x=>stopper(hand,x))&&isLegal('3N',auction))return R('3N',`With ${H} points and a stopper in their suit, bid 3NT.`,'Game');
+  if(H>=8&&H<=11&&isBalanced(hand)&&opp.every(x=>stopper(hand,x))&&isLegal('1N',auction))return R('1N',`With ${H} points and a stopper in their suit, bid 1NT.`,'8–11 points, stopper');
+  const c=unbid.filter(s=>s!==ps&&L[s]>=5),s=bestSuit(L,c);
+  if(s&&H>=8){const l=cheapestLevel(s,lb);if(l<=2)return R(l+s,`With ${H} points and ${L[s]} ${SNAME[s]}, show your suit: ${bidText(l+s)}.`,`8+ points, 5+ ${SNAME[s]}`);}
+  return R('P','Nothing useful to add over partner\'s overcall. Pass.','Pass');
+}
+function doublerRebid(auction,seat,hand,ps){
+  const H=hcp(hand),L=lens(hand),lb=lastBid(auction),opp=oppSuitsOf(auction,seat);
+  if(H<17)return R('P','You showed your hand with the double, and partner has picked a suit. Pass.','Pass');
+  if(L[ps]>=4){const l=cheapestLevel(ps,lb),lv=H>=19&&isMajor(ps)?4:Math.min(l+1,4);return R(lv+ps,`With ${H} points and four ${SNAME[ps]}, raise partner to ${bidText(lv+ps)}.`,`Strong double, ${SNAME[ps]} support`);}
+  const own=SUITS.filter(s=>!opp.includes(s)&&s!==ps&&L[s]>=5),s=bestSuit(L,own);
+  if(s){const l=cheapestLevel(s,lb);return R(l+s,`Now show your own suit: ${bidText(l+s)}. Doubling first, then bidding a suit, shows a very strong hand.`,`17+ points, 5+ ${SNAME[s]}`);}
+  if(opp.every(x=>stopper(hand,x))){const n=isLegal('2N',auction)?'2N':'3N';return R(n,`With ${H} points and a stopper, bid ${bidText(n)}.`,'Strong balanced hand');}
+  return R('P','Pass.','Pass');
+}
+function defending(auction,seat,hand){
+  const ps=partnerOf(seat),mine=auction.filter(x=>x.seat===seat&&x.bid!=='P'),his=auction.filter(x=>x.seat===ps&&x.bid!=='P');
+  if(!mine.length&&!his.length)return overcallAction(auction,seat,hand);
+  if(!mine.length)return advance(auction,seat,hand,his[0].bid);
+  if(mine.length===1&&mine[0].bid==='X'&&his.length===1&&isRealBid(his[0].bid))return doublerRebid(auction,seat,hand,his[0].bid[1]);
+  return placement(auction,seat,hand);
+}
+function competitiveResponse(auction,seat,hand,ob){
+  const H=hcp(hand),L=lens(hand),lb=lastBid(auction),os=ob[1],opp=oppSuitsOf(auction,seat);
+  if(ob==='2C')return R('P','Pass.','Pass');
+  if(ob==='1N'||ob==='2N'){const need=ob==='1N'?10:5;
+    if(H>=need&&opp.every(s=>stopper(hand,s))&&isLegal('3N',auction))return R('3N',`Partner has ${ob==='1N'?'15–17':'20–21'} and you have ${H}, with a stopper in their suit. Bid 3NT.`,'Game');
+    const M=['S','H'].find(s=>L[s]>=5&&!opp.includes(s));
+    if(M&&H>=need&&isLegal('4'+M,auction))return R('4'+M,`With ${L[M]} ${SNAME[M]} and ${H} points, bid game: 4${SYM[M]}.`,'Game');
+    if(M){const l=cheapestLevel(M,lb);if(l<=2)return R(l+M,`With ${L[M]} ${SNAME[M]}, compete with ${bidText(l+M)}.`,`5+ ${SNAME[M]}`);}
+    return R('P','Pass.','Pass');}
+  if(SYS.modern&&ob[0]==='2'){
+    if(L[os]>=3&&H>=15&&isMajor(os)&&isLegal('4'+os,auction))return R('4'+os,`With support for partner's weak two and ${H} points, bid game.`,'Game');
+    if(L[os]>=3&&H<=10&&isLegal('3'+os,auction))return R('3'+os,`With support for partner's weak two, raise to 3${SYM[os]} to keep the opponents busy.`,'Blocking raise');
+    return R('P','Pass.','Pass');}
+  const need=isMajor(os)?3:5;
+  if(L[os]>=need){const sp=supportPts(hand,os),l=cheapestLevel(os,lb);
+    if(sp>=13){if(isMajor(os)&&isLegal('4'+os,auction))return R('4'+os,`Even after the overcall, you have ${L[os]}-card support and ${sp} support points: bid game, 4${SYM[os]}.`,'Game');
+      if(opp.every(s=>stopper(hand,s))&&isLegal('3N',auction))return R('3N',`With ${H} points and a stopper in their suit, bid 3NT.`,'Game');}
+    if(sp>=10&&l<=2)return R('3'+os,`You have ${L[os]}-card support and ${sp} support points. Raise to 3${SYM[os]} to invite game.`,`10–12 points, ${SNAME[os]} support`);
+    if(sp>=6&&l<=2)return R(l+os,`You have ${L[os]}-card support and ${sp} support points. Raise partner to ${bidText(l+os)}, even after the overcall.`,`6–9 points, ${SNAME[os]} support`);
+    if(sp>=6&&L[os]>=4&&l===3)return R('3'+os,`With four-card support, compete to 3${SYM[os]}.`,`Competing in ${SNAME[os]}`);}
+  if(SYS.modern&&+lb[0]<=2){const um=['H','S'].filter(s=>s!==os&&!opp.includes(s));
+    if(um.some(s=>L[s]>=4)&&H>=(+lb[0]>=2?8:6)&&isLegal('X',auction))return R('X',`You have ${H} points and four ${um.filter(s=>L[s]>=4).map(s=>SNAME[s]).join(' and ')}. Make a negative double: it shows the unbid major and asks partner to bid again.`,`Negative double: ${+lb[0]>=2?8:6}+ points, 4+ in the unbid major`);}
+  if(isBalanced(hand)&&opp.every(s=>stopper(hand,s))){
+    if(H>=13&&isLegal('3N',auction))return R('3N',`With ${H} points and a stopper in their suit, bid 3NT.`,'Game');
+    if(H>=11&&H<=12&&isLegal('2N',auction))return R('2N',`With ${H} points and a stopper in their suit, invite game with 2NT.`,'11–12 points, stopper');
+    if(H>=6&&H<=10&&isLegal('1N',auction))return R('1N',`With ${H} points and a stopper in their suit, bid 1NT.`,'6–10 points, stopper in their suit');}
+  const c=SUITS.filter(s=>s!==os&&!opp.includes(s)),s=bestSuit(L,c.filter(x=>{const l=cheapestLevel(x,lb);return L[x]>=(l===1?(SYS.modern?5:4):5);}));
+  if(s){const l=cheapestLevel(s,lb);if(l===1&&H>=6)return R('1'+s,`Show your ${SNAME[s]} at the one level: 1${SYM[s]}.`,`6+ points, ${L[s]}+ ${SNAME[s]}`);
+    if(l===2&&H>=10)return R('2'+s,`With ${H} points and ${L[s]} ${SNAME[s]}, bid 2${SYM[s]}. It's forcing.`,`10+ points, 5+ ${SNAME[s]}`);}
+  return R('P','After the overcall you have nothing useful to say. Pass.','Pass');
+}
+function openerAfterNegX(auction,seat,hand,ob){
+  const L=lens(hand),H=hcp(hand),lb=lastBid(auction),os=ob[1],opp=oppSuitsOf(auction,seat);
+  const um=['H','S'].filter(s=>s!==os&&!opp.includes(s)&&L[s]>=4);
+  if(um.length){const s=bestSuit(L,um),l=cheapestLevel(s,lb);return R(l+s,`Partner's negative double shows the unbid major. You have four ${SNAME[s]}: bid ${bidText(l+s)}.`,`4+ ${SNAME[s]}`);}
+  if(L[os]>=6){const l=cheapestLevel(os,lb);return R(l+os,`No four-card major to show, so rebid your six-card suit: ${bidText(l+os)}.`,`6+ ${SNAME[os]}`);}
+  if(opp.every(s=>stopper(hand,s))){const n=isLegal('1N',auction)?'1N':'2N';return R(n,`With a stopper in their suit, bid ${bidText(n)}.`,'Stopper in their suit');}
+  const c=SUITS.filter(s=>!opp.includes(s)),s=bestSuit(L,c),l=cheapestLevel(s,lb);
+  return R(l+s,`Partner's double asks you to bid. Your best choice is ${bidText(l+s)}.`,`Answering the double`);
+}
+function contestedOurs(auction,seat,hand,opener){
+  const ps=partnerOf(seat),mine=auction.filter(x=>x.seat===seat&&x.bid!=='P'),his=auction.filter(x=>x.seat===ps&&x.bid!=='P');
+  const cv=conventionReply(auction,seat,hand)||askerPlace(auction,seat,hand);if(cv)return cv;
+  if(opener===ps&&!mine.length){
+    const oi=auction.findIndex(x=>x.seat===opener&&x.bid!=='P');
+    const intr=auction.slice(oi+1).find(x=>sideOf(x.seat)!==sideOf(seat)&&x.bid!=='P');
+    if(intr&&intr.bid==='X')return continueBid([his[0].bid],'R',hand);
+    return competitiveResponse(auction,seat,hand,his[0].bid);
+  }
+  if(opener===seat&&mine.length===1&&his.length===1){
+    const rho=auction[auction.length-1];
+    if(his[0].bid==='X'&&rho.bid==='P')return openerAfterNegX(auction,seat,hand,mine[0].bid);
+    if(isRealBid(his[0].bid)){const r=continueBid([mine[0].bid,his[0].bid],'O',hand);if(r.bid!=='P'&&isLegal(r.bid,auction))return r;}
+  }
+  return placement(auction,seat,hand);
 }
 function continueBid(seq,role,h){
   const o=seq[0];
@@ -584,6 +770,7 @@ function resp2(h,o1,r1,o2){
   else if(isMajor(os)&&os!==o1&&L[os]>=4) fit=os;
   else if(isMajor(rs)&&L[rs]>=6) fit=rs;
   const Rp=!fit?H:(fit===rs&&os!==rs?H+lengthPts(h):supportPts(h,fit));
+  if(!fit&&!isMajor(rs)&&L[rs]>=6&&Rp+lo<25){const l=cheapestLevel(rs,o2);if(l<=3)return R(l+rs,`No fit with partner yet, and you have six ${SNAME[rs]}. Rebid them: ${bidText(l+rs)}.`,`6+ ${SNAME[rs]}`);}
   const strain=fit||'N';
   const game=strain==='N'?'3N':'4'+strain, inv=strain==='N'?'2N':'3'+strain;
   const legal=b=>bidVal(b)>bidVal(o2);
@@ -722,7 +909,7 @@ function sortHand(h,trump){const ord=SUIT_ORDER[trump||'N'];return h.slice().sor
 function newPlay(hands,contract){
   const lead=nextSeat(contract.declarer);
   return {hands:{N:hands.N.slice(),E:hands.E.slice(),S:hands.S.slice(),W:hands.W.slice()},trump:contract.strain==='N'?null:contract.strain,
-    trick:[],leader:lead,turn:lead,tricks:{NS:0,EW:0},played:[],history:[],firstLeadSuit:null,done:false};
+    trick:[],leader:lead,turn:lead,tricks:{NS:0,EW:0},played:[],history:[],firstLeadSuit:null,done:false,decl:contract.declarer};
 }
 function legalCards(st,seat){const h=st.hands[seat];if(!st.trick.length)return h.slice();const ls=st.trick[0].card.s;const f=h.filter(c=>c.s===ls);return f.length?f:h.slice();}
 function trickWinner(trick,trump){let w=trick[0];for(const t of trick.slice(1)){const c=t.card,wc=w.card;if(c.s===wc.s){if(c.r>wc.r)w=t;}else if(trump&&c.s===trump)w=t;}return w;}
@@ -769,8 +956,9 @@ function followChoose(st,seat,isDef){
     if(partnerWin)return {card:lowest(legal),why:'partner'};
     if(pos===1){
       const led=st.trick[0];
-      if(isDef&&led.card.r>=11&&isNS(led.seat)){
-        const touching=led.seat==='N'&&st.hands.N.some(c=>c.s===led.card.s&&c.r===led.card.r-1);
+      const dsd=st.decl||'S',dummy=partnerOf(dsd);
+      if(isDef&&led.card.r>=11&&sideOf(led.seat)===sideOf(dsd)){
+        const touching=led.seat===dummy&&st.hands[dummy].some(c=>c.s===led.card.s&&c.r===led.card.r-1);
         const cov=legal.filter(beats);
         if(!touching&&cov.length)return {card:lowest(cov),why:'cover'};
       }
@@ -778,7 +966,7 @@ function followChoose(st,seat,isDef){
     }
     const win=legal.filter(beats);
     if(win.length){
-      if(pos===2&&!isDef){const own=[st.hands.N,st.hands.S];const sure=win.filter(c=>isMaster(c,st,own));if(sure.length)return {card:lowest(sure),why:'win'};}
+      if(pos===2&&!isDef){const own=[st.hands[seat],st.hands[partnerOf(seat)]];const sure=win.filter(c=>isMaster(c,st,own));if(sure.length)return {card:lowest(sure),why:'win'};}
       return {card:lowest(win),why:'win'};
     }
     return {card:lowest(legal),why:'cant'};
@@ -803,7 +991,7 @@ function defenderChoose(st,seat){
   if(!st.trick.length)return st.history.length?defLead(st,seat):openingLead(st.hands[seat],st.trump);
   return followChoose(st,seat,true).card;
 }
-function outstandingTrumps(st){if(!st.trump)return 0;let n=13;n-=st.played.filter(c=>c.s===st.trump).length;n-=st.hands.N.filter(c=>c.s===st.trump).length+st.hands.S.filter(c=>c.s===st.trump).length;return n;}
+function outstandingTrumps(st,seat){if(!st.trump)return 0;seat=seat||'S';let n=13;n-=st.played.filter(c=>c.s===st.trump).length;n-=st.hands[seat].filter(c=>c.s===st.trump).length+st.hands[partnerOf(seat)].filter(c=>c.s===st.trump).length;return n;}
 const FOLLOW_WHY={
   cover:c=>`Cover an honor with an honor: ${cardTxt(c)}.`,
   partner:c=>`Your side is already winning this trick, so play low (${cardTxt(c)}) and save your high cards.`,
@@ -814,10 +1002,10 @@ const FOLLOW_WHY={
   discard:c=>`You can't follow suit, so discard a low card you won't need: ${cardTxt(c)}.`
 };
 function declarerHint(st,seat){
-  const own=[st.hands.N,st.hands.S],h=st.hands[seat],pt=st.hands[partnerOf(seat)],trump=st.trump;
+  const own=[st.hands[seat],st.hands[partnerOf(seat)]],h=st.hands[seat],pt=st.hands[partnerOf(seat)],trump=st.trump;
   if(st.trick.length){const f=followChoose(st,seat);return {card:f.card,why:FOLLOW_WHY[f.why](f.card),kind:f.why};}
   if(trump){
-    const out=outstandingTrumps(st),myT=h.filter(c=>c.s===trump);
+    const out=outstandingTrumps(st,seat),myT=h.filter(c=>c.s===trump);
     if(out>0&&myT.length){
       const mt=myT.filter(c=>isMaster(c,st,own));
       if(mt.length){const c=highest(mt);return {card:c,why:`Draw trumps: the opponents still hold ${out} trump${out>1?'s':''}. Lead your top trump, ${cardTxt(c)}, so they can't ruff your winners.`};}
@@ -858,6 +1046,8 @@ function catOpen(b){if(b==='P')return 'P';if(b==='1N')return '1N';if(b==='2N'||b
 function genOpeningEx(cat){let last;for(let i=0;i<40000;i++){const h=dealHands().S;const r=openingBid(h);last={hand:h,ans:r};if(catOpen(r.bid)===cat)return last;}return last;}
 function catResp(o,b){if(b==='P')return 'P';if(b[1]===o[1])return 'raise';if(b==='1N')return '1N';if(b[1]==='N')return 'NT';return b[0]==='1'?'new1':'new2';}
 function genRespondEx(cat){let last=null;for(let i=0;i<40000;i++){const d=dealHands();const o=openingBid(d.N).bid;if(!/^1[CDHS]$/.test(o))continue;const r=respond1(d.S,o[1]);last={opening:o,hand:d.S,ans:r};if(catResp(o,r.bid)===cat)return last;}return last;}
+function catComp(b){if(b==='X')return 'X';if(b==='1N')return '1N';if(b==='P')return 'P';return 'ov';}
+function genCompEx(cat){let last=null;for(let i=0;i<40000;i++){const d=dealHands();const o=openingBid(d.E).bid;if(!/^1[CDHS]$/.test(o))continue;const a=[{seat:'E',bid:o}];const r=recommend(a,'S',d.S);last={opening:o,hand:d.S,ans:r};if(catComp(r.bid)===cat)return last;}return last;}
 function catNT(b){if(b==='P')return 'P';if(b==='2C')return 'stay';if(SYS.modern&&(b==='2D'||b==='2H'))return 'xfer';if(b==='2N')return '2N';if(b==='3N')return '3N';if(b[0]==='2')return 'sign';return 'major';}
 function genNTEx(cat){let last=null;for(let i=0;i<40000;i++){const d=dealHands();if(openingBid(d.N).bid!=='1N')continue;const r=nt1(['1N'],'R',d.S);last={opening:'1N',hand:d.S,ans:r};if(catNT(r.bid)===cat)return last;}return last;}
 
@@ -952,7 +1142,24 @@ function sameGroupSt(st,seat,a,b){if(a.s!==b.s)return false;const lo=Math.min(a.
 function ddPick(st,seat,maximize,pref){const ev=ddEvalSt(st);const bv=maximize?Math.max(...ev.map(e=>e.v)):Math.min(...ev.map(e=>e.v));const best=ev.filter(e=>e.v===bv).map(e=>e.card);
   if(pref&&best.some(c=>c.s===pref.s&&(c.r===pref.r||sameGroupSt(st,seat,c,pref))))return pref;
   return best.reduce((a,b)=>b.r<a.r?b:a);}
-function hybridDef(st,seat){const rb=defenderChoose(st,seat);if(13-st.history.length<=7)return ddPick(st,seat,false,rb);return rb;}
+function hybridDef(st,seat){const rb=defenderChoose(st,seat);if(13-st.history.length<=7)return ddPick(st,seat,isNS(seat),rb);return rb;}
+function isDeclSide(st,seat){return sideOf(seat)===sideOf(st.decl||'S');}
+function robotChoose(st,seat,smart){
+  if(isDeclSide(st,seat)){const c=declarerHint(st,seat).card;return smart&&13-st.history.length<=7?ddPick(st,seat,isNS(seat),c):c;}
+  return smart?hybridDef(st,seat):defenderChoose(st,seat);
+}
+function defenseHint(st,seat){
+  const h=st.hands[seat];
+  if(st.trick.length){const f=followChoose(st,seat,true);return {card:f.card,why:FOLLOW_WHY[f.why](f.card),kind:f.why};}
+  if(!st.history.length){const c=openingLead(h,st.trump),by=bySuit(h)[c.s],i=by.findIndex(x=>cardEq(x,c));
+    const seqTop=i===0&&by.length>=2&&c.r>=10&&by[1].r===c.r-1;
+    return {card:c,why:seqTop?`Lead the top of your touching honors: ${cardTxt(c)}. It's safe, and it tells partner what you hold.`:by.length>=4&&i===3?`Lead fourth from your longest and strongest suit: ${cardTxt(c)}.`:`Lead ${cardTxt(c)}, from a suit where you're not giving anything away.`};}
+  const c=defLead(st,seat);
+  if(isMaster(c,st,[h]))return {card:c,why:`Cash your winner: ${cardTxt(c)}.`};
+  if(st.history[0].cards[0].seat===partnerOf(seat)&&c.s===st.firstLeadSuit)return {card:c,why:`Return partner's suit: ${cardTxt(c)}.`};
+  return {card:c,why:`Lead ${cardTxt(c)} from your longest suit.`};
+}
+function hintFor(st,seat){return isDeclSide(st,seat)?declarerHint(st,seat):defenseHint(st,seat);}
 
 function describeBid(auction,seat,bid){
   const prev=[];auction.forEach((x,i)=>{if(x.seat===seat)prev.push(i);});
@@ -1047,7 +1254,7 @@ function bidBox(el,opts){
     const b=document.createElement('button');b.className='btn bb';b.textContent=l;
     b.disabled=!en||(lb&&bidVal(l+'N')<=bidVal(lb));
     if(opts.level===l)b.classList.add('sel');
-    if(g&&g!=='P'&&+g[0]===l&&opts.level!==l)b.classList.add('glow');
+    if(isRealBid(g)&&+g[0]===l&&opts.level!==l)b.classList.add('glow');
     b.onclick=()=>{sfx.tap();opts.level=l;bidBox(el,opts);};
     r1.appendChild(b);
   }
@@ -1057,8 +1264,8 @@ function bidBox(el,opts){
     b.innerHTML=s==='N'?'NT':colorize(SYM[s]);
     const bid=opts.level?opts.level+s:null;
     b.disabled=!en||!bid||(lb&&bidVal(bid)<=bidVal(lb));
-    if(g&&g!=='P'&&g[1]===s&&opts.level===+g[0])b.classList.add('glow');
-    if(opts.pending&&opts.pending!=='P'&&opts.pending===opts.level+s)b.classList.add('sel');
+    if(isRealBid(g)&&g[1]===s&&opts.level===+g[0])b.classList.add('glow');
+    if(isRealBid(opts.pending)&&opts.pending===opts.level+s)b.classList.add('sel');
     b.setAttribute('aria-label',s==='N'?'No trump':SNAME[s]);
     b.onclick=()=>{const bd=opts.level+s;if(opts.onPreview){sfx.tap();opts.pending=bd;bidBox(el,opts);opts.onPreview(bd);return;}opts.level=null;opts.onBid(bd);};
     r2.appendChild(b);
@@ -1066,7 +1273,7 @@ function bidBox(el,opts){
   const r3=document.createElement('div');r3.className='crow';
   if(opts.pending&&en){
     const bd=opts.pending;
-    r3.appendChild(mkBtn(`✓ ${bd==='P'?'Pass':'Bid '+colorize(bidText(bd))}`,'primary',()=>{opts.pending=null;opts.level=null;opts.onBid(bd);}));
+    r3.appendChild(mkBtn(`✓ ${isRealBid(bd)?'Bid '+colorize(bidText(bd)):bidText(bd)}`,'primary',()=>{opts.pending=null;opts.level=null;opts.onBid(bd);}));
     r3.appendChild(mkBtn('Change','',()=>{sfx.tap();opts.pending=null;bidBox(el,opts);opts.onCancel&&opts.onCancel();}));
     el.append(r1,r2,r3);return;
   }
@@ -1074,6 +1281,13 @@ function bidBox(el,opts){
   if(g==='P')p.classList.add('glow');
   p.onclick=()=>{if(opts.onPreview){sfx.tap();opts.pending='P';opts.level=null;bidBox(el,opts);opts.onPreview('P');return;}opts.level=null;opts.onBid('P');};
   r3.appendChild(p);
+  for(const [code,label,ok] of [['X','Dbl',opts.canX],['XX','Rdbl',opts.canXX]]){
+    if(ok===undefined)continue;
+    const d=document.createElement('button');d.className='btn dbl';d.textContent=label;d.disabled=!en||!ok;
+    d.setAttribute('aria-label',bidText(code));if(g===code)d.classList.add('glow');
+    d.onclick=()=>{if(opts.onPreview){sfx.tap();opts.pending=code;opts.level=null;bidBox(el,opts);opts.onPreview(code);return;}opts.level=null;opts.onBid(code);};
+    r3.appendChild(d);
+  }
   (opts.extra||[]).forEach(x=>r3.appendChild(x));
   el.append(r1,r2,r3);
 }
@@ -1094,7 +1308,7 @@ const LESSONS=[
   {h:'A game of tricks',t:`<p>Bridge is a trick-taking game, much like Spades or Hearts. Four players sit as two partnerships: North and South against East and West.</p><p>You are South. Your partner sits across from you as North. Each player gets 13 cards, and every round of four cards is one trick, 13 tricks in all.</p>`},
   {h:'Familiar rules',t:`<p>As in Spades, you must follow the suit that was led if you can. The highest card of that suit wins the trick, unless someone plays a trump.</p><p>The big difference: before any cards are played, there is an <b>auction</b>. The auction decides which suit is trump (or "no trump") and how many tricks your side promises to win.</p>`},
   {h:'Reading a bid',t:`<p>Every bid counts from a base of six tricks, called the "book." So a bid of 1♥ promises 7 tricks with hearts as trump. 3NT promises 9 tricks with no trump suit.</p><p>Each bid must be higher than the last. At the same level, the order from low to high is ♣, ♦, ♥, ♠, then NT.</p>`,ex:`<b>1♠</b> = 6 + 1 = 7 tricks, spades trump<br><b>4♥</b> = 6 + 4 = 10 tricks, hearts trump`},
-  {h:'Declarer and dummy',t:`<p>The side that wins the auction tries to make its contract. One partner, the <b>declarer</b>, plays both hands. The other partner's cards go face-up on the table as the <b>dummy</b>.</p><p>The other side defends. In these practice hands, your side will always win the auction, and you'll play both your hand and North's.</p>`},
+  {h:'Declarer and dummy',t:`<p>The side that wins the auction tries to make its contract. One partner, the <b>declarer</b>, plays both hands. The other partner's cards go face-up on the table as the <b>dummy</b>.</p><p>The other side defends. When your side wins the auction, you'll play both your hand and North's. When the opponents win it, you'll defend with partner.</p>`},
   {h:'Aiming for game',t:`<p>Some contracts earn a big bonus called "game": 3NT (9 tricks), 4♥ or 4♠ (10 tricks), and 5♣ or 5♦ (11 tricks).</p><p>Most bidding is really a conversation with your partner: do we have enough strength for game, and which suit should be trump?</p>`}
  ],exercise:{type:'quiz',items:[
   {q:'A contract of 2♥ means your side must win how many tricks?',opts:['2 tricks','6 tricks','8 tricks','9 tricks'],a:2,why:'Add the bid to the book of six: 6 + 2 = 8 tricks.'},
@@ -1151,6 +1365,15 @@ const LESSONS=[
   {q:'You bid 4♣ (Gerber) and partner answers 4♠. How many Aces does partner hold?',opts:['None','One','Two','Three'],a:2,why:'Over Gerber, 4♠ shows two Aces.'},
   {q:'Partner opened 1NT and you jumped to 4NT. What does that mean?',opts:['Blackwood, asking for Aces','An invitation to 6NT','Partner must pass','A sign-off in 4NT'],a:1,why:'After an all-notrump auction, 4NT invites slam. Partner bids 6NT with the top of their range.'}
  ]}},
+
+ {title:'Overcalls and doubles',blurb:'When the opponents open',pages:[
+  {h:'Joining the auction',t:`<p>The opponents won't always stay quiet, and you shouldn't either. When an opponent opens the bidding, your side can still compete.</p><p>You have three main choices: an <b>overcall</b>, a <b>1NT overcall</b>, or a <b>takeout double</b>. Or simply pass.</p>`},
+  {h:'The overcall',t:`<p>Bid a good suit of your own, five or more cards with two of the top four honors.</p><p>At the one level you need about <b>8–16 points</b>. At the two level, about <b>11–16</b> and a strong suit. An overcall competes for the contract and tells partner what to lead.</p>`,ex:`East opens 1♦. You hold:<br>♠ K Q J 7 4 &nbsp; ♥ 8 3 &nbsp; ♦ 6 5 2 &nbsp; ♣ A 9 3<br>10 points, good spades: <b>overcall 1♠</b>`},
+  {h:'The 1NT overcall',t:`<p>With <b>15–18 points</b>, a balanced hand, and a <b>stopper</b> in their suit, overcall 1NT.</p><p>A stopper is a card that will win a trick in their suit, such as the Ace, K-x, or Q-x-x. Partner treats your 1NT just like a 1NT opening.</p>`},
+  {h:'The takeout double',t:`<p>With <b>12+ points</b>, shortness in the opponent's suit, and support for the other suits, say <b>Double</b>.</p><p>It doesn't mean "they'll go down." It asks partner to <b>choose a suit</b>. With 17+ points you can double first and bid your own suit later.</p>`,ex:`East opens 1♥. You hold:<br>♠ K J 7 4 &nbsp; ♥ 5 &nbsp; ♦ A Q 6 2 &nbsp; ♣ K 10 9 3<br>13 points, short in hearts: <b>Double</b>`},
+  {h:'Answering partner\'s double',t:`<p>Partner's takeout double asks you to bid, even with zero points, unless the next opponent bids first.</p><p>Bid your longest unbid suit, preferring a major. With 9–11 points, jump a level. With 12+, bid game. With 6–10, a stopper and nothing else to say, bid 1NT.</p>`},
+  {h:'Other doubles',t:`<p><b>Negative double</b> (modern style): partner opens, the next player overcalls, and you double. It shows the unbid major and some points, not a wish to penalize.</p><p><b>Penalty double</b>: when the opponents bid high and you're sure they'll fail, double to score extra points for setting them.</p>`}
+ ],exercise:{type:'comp',cats:['ov','X','P','ov','1N','X']}},
  {title:'Weak two-bids',blurb:'Advanced: modern style',adv:true,pages:[
   {h:'A different kind of opening',t:`<p>In modern bridge, an opening bid of <b>2♦, 2♥ or 2♠</b> is a <b>weak two-bid</b>. It shows a good six-card suit and a weak hand: about 5 to 10 high-card points.</p><p><b>2♣</b> is the only strong two-bid. Open it with 22 or more points, just as before.</p>`},
   {h:'Why open a weak hand?',t:`<p>A weak two takes bidding room away from the opponents, and it tells partner almost exactly what you hold.</p><p>A good weak two has two of the top four honors (A, K, Q, J) in the suit, so partner can count on your six cards to take tricks.</p>`,ex:`♠ K Q J 9 7 4 &nbsp; ♥ 8 3 &nbsp; ♦ Q 6 2 &nbsp; ♣ 7 5<br>8 points, six good spades: <b>open 2♠</b>`},
@@ -1168,7 +1391,7 @@ const LESSONS=[
 
 /* home */
 function renderHome(){
-  gen++;
+  gen++;if($('auctionPop'))hidePop();
   const g=$('lessonGrid');g.innerHTML='';
   LESSONS.forEach((L,i)=>{
     const done=!!store.lessons[i+1];
@@ -1178,7 +1401,7 @@ function renderHome(){
   });
   const lessonsDone=Object.keys(store.lessons).length;
   let s=`Lessons finished: <b>${lessonsDone} of ${LESSONS.length}</b>`;
-  if(store.hands) s+=`<br>Practice hands played: <b>${store.hands}</b>, contracts made: <b>${store.made}</b>`;
+  if(store.hands) s+=`<br>Practice hands played: <b>${store.hands}</b>, good results: <b>${store.made}</b>`;
   const stars=Object.values(store.ch||{}).filter(v=>v==='s').length;if(stars)s+=`<br>Challenge stars: <b>${stars} of ${CH.length}</b>`;
   if(store.jp&&store.jp.rounds)s+=`<br>Just Play best round: <b>${store.jp.best.toLocaleString()}</b> points`;
   $('statsLine').innerHTML=s;
@@ -1209,6 +1432,7 @@ function startExercise(i){
   else if(X.type==='open')items=shuffle(X.cats.slice()).map(c=>({kind:'bid',ctx:'open',...genOpeningEx(c)}));
   else if(X.type==='respond')items=X.cats.map(c=>({kind:'bid',ctx:'respond',...genRespondEx(c)}));
   else if(X.type==='nt')items=shuffle(X.cats.slice()).map(c=>({kind:'bid',ctx:'nt',...genNTEx(c)}));
+  else if(X.type==='comp')items=shuffle(X.cats.slice()).map(c=>({kind:'bid',ctx:'comp',...genCompEx(c)}));
   if(X.type==='respond')items=shuffle(items);
   SYS.modern=keepSys;
   EX={lesson:i,items,k:0,score:0};
@@ -1249,9 +1473,10 @@ function renderEx(){
     renderHand($('exHand'),sortHand(it.hand));
     const H=hcp(it.hand);
     if(it.ctx==='open')$('exPrompt').innerHTML=`You're first to bid. What is your <b>opening bid</b>?`;
+    else if(it.ctx==='comp')$('exPrompt').innerHTML=`East, on your right, opened <span class="chip">${colorize(bidText(it.opening))}</span>. What do you bid?`;
     else $('exPrompt').innerHTML=`Partner opened <span class="chip">${colorize(bidText(it.opening))}</span>. What do you respond?`;
     const bb=document.createElement('div');bb.className='controls';ans.appendChild(bb);
-    it.box={lastBid:it.opening||null,enabled:true,level:null,onBid:b=>answerBid(b,bb)};
+    it.box={lastBid:it.opening||null,enabled:true,level:null,onBid:b=>answerBid(b,bb)};if(it.ctx==='comp'){it.box.canX=true;}
     bidBox(bb,it.box);
   }
 }
@@ -1270,7 +1495,7 @@ function answerBid(b,bb){
   const it=EX.items[EX.k];if(it.done)return;it.done=true;
   const ok=b===it.ans.bid;
   if(ok){EX.score++;sfx.good();}else sfx.soft();
-  it.box.enabled=false;it.box.glow=it.ans.bid;it.box.level=it.ans.bid==='P'?null:+it.ans.bid[0];bidBox(bb,it.box);
+  it.box.enabled=false;it.box.glow=it.ans.bid;it.box.level=isRealBid(it.ans.bid)?+it.ans.bid[0]:null;bidBox(bb,it.box);
   const msg=ok?`<b>Correct: ${colorize(bidText(b))}.</b> ${colorize(it.ans.why)}`:`<b>Not quite.</b> You bid ${colorize(bidText(b))}; the Standard American bid is <b>${colorize(bidText(it.ans.bid))}</b>. ${colorize(it.ans.why)}`;
   setCoach($('exFeedback'),msg,ok?'good':'warn',23);
   $('exNext').disabled=false;
@@ -1299,7 +1524,7 @@ function showResults(){
 /* ================= PRACTICE TABLE ================= */
 let T=null;
 function startPractice(replay){
-  gen++;
+  gen++;hidePop();
   const hands=replay&&T?T.orig:makePracticeDeal();
   const dealer=replay&&T?T.dealer:SEATS[Math.floor(Math.random()*4)];
   T={orig:hands,hands:{N:hands.N.slice(),E:hands.E.slice(),S:hands.S.slice(),W:hands.W.slice()},dealer,auction:[],turn:dealer,phase:'bid',contract:null,play:null,undo:[],suggest:null,glow:null,firstTry:true,revealed:false,busy:false,auto:false,watch:false,planShown:false,log:[],bbOpts:{level:null}};
@@ -1316,17 +1541,20 @@ function stepAuction(){
   if(seat==='S'){T.firstTry=true;T.glow=null;if(T.mode==='jp')jpTurnMsg();else userTurnMsg();renderTable();return;}
   const r=recommend(T.auction,seat,T.hands[seat]);
   T.auction.push({seat,bid:r.bid,means:r.means});sfx.bid();
-  if(T.mode==='jp'&&seat==='N')coach(`Partner (North) bids <b>${bidText(r.bid)}</b>${r.bid==='P'?'.':': '+r.means+'.'}`);
   T.turn=nextSeat(seat);renderTable();
   schedAuction(T.turn==='S'?300:950);
 }
+function callNote(x){const who=x.seat==='N'?'Partner':SEATNAME[x.seat];
+  if(x.bid==='P')return `${who} passed. `;
+  const mm=x.means&&x.means!=='Pass'?`: ${x.means}`:'';
+  return x.bid==='X'?`${who} doubled${mm}. `:x.bid==='XX'?`${who} redoubled. `:`${who} bid <b>${bidText(x.bid)}</b>${mm}. `;}
+function recentCalls(){const a=T.auction;let i=a.length-1;const out=[];while(i>=0&&a[i].seat!=='S'){out.unshift(a[i]);i--;}
+  if(!a.some(x=>x.seat==='S'))return out.filter(x=>x.bid!=='P'||x.seat==='N');
+  return out.filter(x=>x.bid!=='P'||x.seat==='N');}
 function userTurnMsg(){
   const H=hcp(T.hands.S),Tp=totalPts(T.hands.S);
-  const nb=T.auction.filter(a=>a.seat==='N');const last=nb[nb.length-1];
-  let m='';
-  if(last&&last.bid!=='P')m=`Partner bid <b>${bidText(last.bid)}</b>: ${last.means}. `;
-  else if(last)m='Partner passed. ';
-  else m='You are the first of your side to bid. ';
+  const rc=recentCalls();let m=rc.map(callNote).join('');
+  if(!T.auction.some(x=>isNS(x.seat)&&x.bid!=='P')&&!rc.some(x=>x.seat==='N'))m+='You are the first of your side to bid. ';
   m+=`You have <b>${H}</b> high-card points${Tp>H?` (${Tp} with length)`:''}. What's your bid?`;
   coach(m);
 }
@@ -1334,7 +1562,7 @@ function userBid(b){
   if(T.phase!=='bid'||T.turn!=='S')return;
   clearTimeout(auctionTimer);
   if(T.mode==='jp'){const d=describeBid(T.auction,'S',b);T.auction.push({seat:'S',bid:b,means:d||''});sfx.bid();T.glow=null;
-    coach(b==='P'?`You pass${d&&d!=='Pass'?` (that shows: ${d})`:''}.`:d?`You bid <b>${bidText(b)}</b>. That tells partner: <b>${d}</b>.`:`You bid <b>${bidText(b)}</b>. It has no standard meaning here, so partner will treat it as natural.`);T.turn=nextSeat('S');renderTable();schedAuction(950);return;}
+    coach(b==='P'?`You pass${d&&d!=='Pass'?` (that shows: ${d})`:''}.`:d?`You ${b==='X'?'double':b==='XX'?'redouble':'bid <b>'+bidText(b)+'</b>'}. That tells partner: <b>${d}</b>.`:`You bid <b>${bidText(b)}</b>. It has no standard meaning here, so partner will treat it as natural.`);T.turn=nextSeat('S');renderTable();schedAuction(950);return;}
   const r=recommend(T.auction,'S',T.hands.S);
   if(b===r.bid){
     if(T.firstTry)store.bidsRight++;store.bidsTotal++;save();
@@ -1360,33 +1588,36 @@ function bidHint(){const r=recommend(T.auction,'S',T.hands.S);if(T.mode==='jp'){
 function endAuction(){
   if(T.mode==='jp'&&!lastBid(T.auction))return jpPassOut();
   const c=getContract(T.auction);T.contract=c;T.phase='ready';
-  T.play=newPlay(T.hands,c);
+  T.play=newPlay(T.hands,c);T.defending=!isNS(c.declarer);T.human=T.defending?['S']:['N','S'];
   const need=c.level+6;
-  coach(`The bidding is over. Your side's contract is <b>${bidText(c.bid)}</b>, so you need <b>${need} tricks</b>. ${c.declarer==='S'?'You are declarer.':'North is declarer.'} You'll play both your hand and North's. ${SEATNAME[T.play.leader]} leads first.`);
+  if(!T.defending)coach(`The bidding is over. Your side's contract is <b>${contractText(c)}</b>, so you need <b>${need} tricks</b>. ${c.declarer==='S'?'You are declarer.':'North is declarer.'} You'll play both your hand and North's. ${SEATNAME[T.play.leader]} leads first.`);
+  else coach(`The bidding is over. ${SEATNAME[c.declarer]} declares <b>${contractText(c)}</b>. You and North defend: take <b>${8-c.level}</b> tricks to beat it. ${T.play.leader==='S'?'You make the opening lead.':'North makes the opening lead.'} ${SEATNAME[partnerOf(c.declarer)]}'s hand will be dummy.`);
   renderTable();
 }
+function humanSeat(s){return T.human?T.human.includes(s):isNS(s);}
+function needNS(){return T.defending?8-T.contract.level:T.contract.level+6;}
 function beginPlay(){sfx.tap();T.phase='play';renderTable();schedPlay(500);}
 function stepPlay(){
   const P=T.play;if(T.phase!=='play')return;
   if(P.done){endHand();return;}
   const seat=P.turn;
-  if(isNS(seat)){
+  if(humanSeat(seat)){
     T.suggest=null;renderTable();
     if(T.watch)watchStep(seat);
-    else if(T.auto)later(()=>{const h=declarerHint(P,seat);doPlay(seat,h.card);},450);
+    else if(T.auto)later(()=>{const h=hintFor(P,seat);doPlay(seat,h.card);},450);
     return;
   }
-  doPlay(seat,T.mode==='ch'?chDefender(P,seat):T.mode==='jp'?hybridDef(P,seat):defenderChoose(P,seat));
+  doPlay(seat,T.mode==='ch'?chDefender(P,seat):robotChoose(P,seat,T.mode==='jp'));
 }
 function doPlay(seat,card){
   const P=T.play;playCard(P,seat,card);sfx.card();T.suggest=null;
-  if(!T.revealed){T.revealed=true;if(!T.mode)planMsg();}
+  if(!T.revealed){T.revealed=true;if(T.defending){const dm=partnerOf(T.contract.declarer);coach(`${SEATNAME[dm]}'s hand is dummy, shown on the ${dm==='W'?'left':'right'}. You need ${needNS()} tricks to beat ${contractText(T.contract)}. Partner's cards stay hidden, as in real bridge.`);}else if(!T.mode)planMsg();}
   if(P.trick.length===4){
     T.busy=true;renderTable();
     later(()=>{const w=finishTrick(P);T.busy=false;
-      if(!T.auto)coach(`${w.seat==='S'?'You win':w.seat==='N'?'North wins':SEATNAME[w.seat]+' wins'} the trick with ${cardTxt(w.card)}. Your side has ${P.tricks.NS} of the ${T.contract.level+6} tricks you need.`);
+      if(!T.auto)coach(`${w.seat==='S'?'You win':w.seat==='N'?'North wins':SEATNAME[w.seat]+' wins'} the trick with ${cardTxt(w.card)}. Your side has ${P.tricks.NS} of the ${needNS()} tricks you need${T.defending?' to beat it':''}.`);
       renderTable();schedPlay(300);},T.auto&&!T.watch?800:1400);
-  }else{renderTable();schedPlay(isNS(P.turn)?100:(T.auto&&!T.watch?400:850));}
+  }else{renderTable();schedPlay(humanSeat(P.turn)?100:(T.auto&&!T.watch?400:850));}
 }
 function planMsg(){
   const P=T.play,c=T.contract,need=c.level+6;
@@ -1399,36 +1630,36 @@ function tapCard(seat,card){
   const P=T.play;if(T.phase!=='play'||T.busy||T.auto||P.turn!==seat)return;
   clearTimeout(playTimer);
   T.undo.push(JSON.stringify({play:P,revealed:T.revealed,logLen:T.log.length}));
-  const h=declarerHint(P,seat);
+  const h=hintFor(P,seat);
   if(!cardEq(h.card,card)&&!sameValue(h.card,card,P)&&!(h.kind==='discard'&&card.r<10))
     T.log.push({trick:P.history.length+1,seat,played:card,coach:h.card,why:h.why});
   doPlay(seat,card);
 }
 function badCard(){const P=T.play;if(P.trick.length){coach(`You must follow suit: play a ${SNAME[P.trick[0].card.s].slice(0,-1)} if you have one.`,'warn');sfx.soft();}}
-function playHint(){const P=T.play;if(!isNS(P.turn)||T.busy)return;const h=declarerHint(P,P.turn);T.suggest=h.card;coach(`<b>Hint:</b> ${h.why}`);renderTable();}
+function playHint(){const P=T.play;if(!humanSeat(P.turn)||T.busy)return;const h=hintFor(P,P.turn);T.suggest=h.card;coach(`<b>Hint:</b> ${h.why}`);renderTable();}
 function undo(){
   if(!T.undo.length||T.auto)return;gen++;
   const s=JSON.parse(T.undo.pop());T.play=s.play;T.log.length=s.logLen;T.revealed=s.revealed;T.busy=false;T.suggest=null;
   coach('Card taken back. Choose again.');renderTable();sfx.tap();
 }
-function finishForMe(){if(T.auto)return;T.auto=true;coach('The coach is playing out the rest of the hand…');renderTable();if(isNS(T.play.turn)&&!T.busy)schedPlay(0);}
+function finishForMe(){if(T.auto)return;T.auto=true;coach('The coach is playing out the rest of the hand…');renderTable();if(humanSeat(T.play.turn)&&!T.busy)schedPlay(0);}
 function sameValue(a,b,st){
   if(a.s!==b.s)return false;const lo=Math.min(a.r,b.r),hi=Math.max(a.r,b.r);
-  for(let r=lo+1;r<hi;r++){if(!st.played.some(c=>c.s===a.s&&c.r===r)&&!st.hands.N.concat(st.hands.S).some(c=>c.s===a.s&&c.r===r))return false;}
+  const sd=T&&T.defending?st.hands.S:st.hands.N.concat(st.hands.S);for(let r=lo+1;r<hi;r++){if(!st.played.some(c=>c.s===a.s&&c.r===r)&&!sd.some(c=>c.s===a.s&&c.r===r))return false;}
   return true;
 }
 function simulateCoach(){
   const P=newPlay(T.orig,T.contract);
-  while(!P.done){const s=P.turn;const c=isNS(s)?declarerHint(P,s).card:defenderChoose(P,s);playCard(P,s,c);if(P.trick.length===4)finishTrick(P);}
+  while(!P.done){const s=P.turn;const c=humanSeat(s)?hintFor(P,s).card:robotChoose(P,s,false);playCard(P,s,c);if(P.trick.length===4)finishTrick(P);}
   return P.tricks.NS;
 }
 function endHand(){
   if(T.mode==='ch')return chEnd();
   if(T.mode==='jp')return jpEnd();
-  const c=T.contract,P=T.play,need=c.level+6,got=P.tricks.NS;T.phase='done';renderTable();
+  const c=T.contract,P=T.play,need=needNS(),got=P.tricks.NS;T.phase='done';renderTable();
   if(T.watch){
     sfx.good();
-    overlay(`<h2>That's the coach's way</h2><p>Using simple rules of thumb, the coach took <b>${got}</b> of the ${need} tricks needed in ${colorize(bidText(c.bid))}.</p><p>Try it yourself now, with the Hint button if you like.</p>`,
+    overlay(`<h2>That's the coach's way</h2><p>Using simple rules of thumb, the coach's side took <b>${got}</b> tricks${T.defending?` and needed ${need} to beat ${colorize(contractText(c))}`:` of the ${need} needed in ${colorize(contractText(c))}`}.</p><p>Try it yourself now, with the Hint button if you like.</p>`,
       [{label:'Replay this hand myself',cls:'primary',fn:()=>startPractice(true)},{label:'Play another hand ▶',fn:()=>startPractice()},{label:'Back to Home',fn:renderHome}]);
     return;
   }
@@ -1438,11 +1669,16 @@ function endHand(){
   resultsOverlay();
 }
 function resultsOverlay(){
-  const c=T.contract,{got,need,coachGot}=T.result,n=T.log.length,made=got>=need;
+  const c=T.contract,{got,need,coachGot}=T.result,n=T.log.length,made=got>=need,ct=colorize(contractText(c));
   let h;
-  if(made){const over=got-need;h=`<h2>Contract made!</h2><p>You needed ${need} tricks in ${colorize(bidText(c.bid))} and took <b>${got}</b>${over?`, with ${over} extra (overtrick${over>1?'s':''})`:''}.</p>`;}
+  if(T.defending){const theirs=13-got,dn=SEATNAME[c.declarer];
+    if(made)h=`<h2>Contract defeated!</h2><p>${dn} needed ${c.level+6} tricks in ${ct} but took only ${theirs}. You beat it by ${c.level+6-theirs}.</p>`;
+    else{h=`<h2>${dn} made ${ct}</h2><p>You and partner took ${got} tricks; you needed ${need} to beat it.</p>`;
+      h+=coachGot>=need?`<p>This one <b>could</b> have been beaten. Defending the coach's way takes ${coachGot} tricks.</p>`:`<p>Even the coach couldn't beat this one, so don't be hard on yourself.</p>`;}
+  }
+  else if(made){const over=got-need;h=`<h2>Contract made!</h2><p>You needed ${need} tricks in ${ct} and took <b>${got}</b>${over?`, with ${over} extra (overtrick${over>1?'s':''})`:''}.</p>`;}
   else{
-    h=`<h2>Down ${need-got}</h2><p>You took ${got} of the ${need} tricks you needed in ${colorize(bidText(c.bid))}.</p>`;
+    h=`<h2>Down ${need-got}</h2><p>You took ${got} of the ${need} tricks you needed in ${ct}.</p>`;
     h+=coachGot>=need?`<p>Good news: this hand <b>can</b> be made. Playing the coach's way takes ${coachGot} tricks.</p>`
       :`<p>This was a tough deal. Even the coach's way takes only ${coachGot} tricks, so don't be hard on yourself.</p>`;
   }
@@ -1481,7 +1717,7 @@ function watchCoach(){
 }
 function watchStep(seat){
   const P=T.play;
-  const go=()=>{const h=declarerHint(P,seat);T.suggest=h.card;coach(`<b>${cardTxt(h.card)}</b>: ${h.why}`);renderTable();later(()=>doPlay(seat,h.card),2800);};
+  const go=()=>{const h=hintFor(P,seat);T.suggest=h.card;coach(`<b>${cardTxt(h.card)}</b>: ${h.why}`);renderTable();later(()=>doPlay(seat,h.card),2800);};
   if(!T.planShown){T.planShown=true;later(go,4000);}else go();
 }
 const CH=[{"id": "1-1", "level": 1, "contract": "4H", "lead": "SQ", "N": "K743.QJ5.KQJ.862", "E": "65.873.65.QJT975", "S": "A82.AKT94.A42.K3", "W": "QJT9.62.T9873.A4", "line": ["S3", "SA", "HA", "H5", "HK", "HJ", "H4", "HQ"], "title": "Draw trumps first", "intro": "West leads the ♠Q against 4♥. You can afford to lose three tricks. Count your losers before you play.", "tip": "Ask yourself: what could the opponents trump if you play your side suits too soon?", "notes": ["Win the ♠A. Count your losers: one spade and two clubs. That's three, and you can't afford a fourth.", "Start drawing trumps with the ♥A. The opponents hold five hearts between them.", "Keep going with the ♥K.", "A third round, won by North's ♥Q. The opponents have no trumps left."], "summary": "Draw trumps before you cash your side winners. If you play diamonds first, East runs out after two rounds and trumps your third diamond. That fourth loser beats the contract."}, {"id": "1-2", "level": 1, "contract": "3N", "lead": "SK", "N": "74.AK5.AQT98.652", "E": "852.8762.KJ3.874", "S": "A63.Q43.72.AKQJ3", "W": "KQJT9.JT9.654.T9", "line": ["S4", "SA", "CA", "C2"], "title": "Take your tricks", "intro": "West leads the ♠K against 3NT. Count your sure tricks before you do anything else.", "tip": "Count your sure winners in every suit. Do you really need to take a risk?", "notes": ["Win the ♠A. Now count: one spade, three hearts, one diamond and five clubs. That's ten sure tricks!", "Start cashing your clubs with the ♣A, then keep going."], "summary": "When you already have enough sure tricks, just take them. The diamond finesse is tempting, but East holds the ♦K. If it loses, East leads a spade back, and West takes four spade tricks to beat you."}, {"id": "1-3", "level": 1, "contract": "4S", "lead": "DK", "N": "KQ4.AQ3.7652.832", "E": "32.876.984.JT974", "S": "AJT986.542.A3.KQ", "W": "75.KJT9.KQJT.A65", "line": ["D2", "DA", "S8", "SK", "SQ", "S6", "S4", "SA", "H2", "HQ"], "title": "The simple finesse", "intro": "West leads the ♦K against 4♠. You have one diamond loser and one club loser. The heart suit decides the hand.", "tip": "Which hand should you lead hearts from, so the ♥Q has a chance to win?", "notes": ["Win the ♦A.", "Draw trumps: lead the ♠8 to North's ♠K.", "Then the ♠Q. The opponents' trumps are gone.", "Lead a spade back to your ♠A. You want to be in your own hand for the key play.", "Lead a low heart toward North's ♥A Q. West plays low, so play the ♥Q. It wins, because West holds the ♥K!"], "summary": "A finesse means leading toward the card you hope will win. With ♥A Q in dummy, lead from your own hand. If West holds the King, the Queen wins. Leading the Queen from dummy, or cashing the Ace first, throws that chance away."}, {"id": "1-4", "level": 1, "contract": "4S", "lead": "CK", "N": "T92.6.K7652.A864", "E": "753.9874.983.952", "S": "AKQJ4.A532.A4.73", "W": "86.KQJT.QJT.KQJT", "line": ["CA", "C3", "H6", "HA", "H2", "S2", "D2", "DA", "H3", "S9"], "title": "Ruff in dummy", "intro": "West leads the ♣K against 4♠. You have three small hearts, and North has only one.", "tip": "North's trumps can do a job before you draw the opponents' trumps.", "notes": ["Win the ♣A in dummy.", "Lead North's ♥6 to your ♥A.", "Lead a small heart and trump it in dummy with the ♠2.", "Come back to your hand with the ♦A.", "Lead your last small heart and trump it with dummy's ♠9. Now you can draw trumps."], "summary": "Use dummy's trumps to ruff your losers before you draw trumps. If you draw trumps first, dummy's trumps are used up and your small hearts become losers."}, {"id": "1-5", "level": 1, "contract": "3N", "lead": "SQ", "N": "A5.K74.AK765.862", "E": "8742.8632.JT2.94", "S": "K63.AQ5.843.A753", "W": "QJT9.JT9.Q9.KQJT", "line": ["S5", "SK", "D3", "D5"], "title": "Set up a long suit", "intro": "West leads the ♠Q against 3NT. You have eight sure tricks. Where will the ninth come from?", "tip": "Dummy's long suit can produce extra tricks, but only if you're willing to give one away first.", "notes": ["Win the ♠K in your hand, keeping North's ♠A as a second stopper.", "Lead a low diamond and play low from dummy too, giving the opponents this trick on purpose. You still control every suit."], "summary": "Dummy's long diamonds are your extra tricks. Give up a diamond early, while you still have stoppers everywhere. With the opponents' diamonds splitting 3–2, North's last two diamonds become winners."}, {"id": "1-6", "level": 1, "contract": "3N", "lead": "CK", "N": "764.AJT98.75.642", "E": "832.754.9832.975", "S": "AK5.KQ2.AK64.A83", "W": "QJT9.63.QJT.KQJT", "line": ["C2", "CA", "HK", "H8", "HQ", "H9", "H2", "HA"], "title": "High from the short side", "intro": "West leads the ♣K against 3NT. North's hearts are your source of tricks, but North has no other way in.", "tip": "Which hand should win the early heart tricks, so you finish in the right place?", "notes": ["Win the ♣A.", "Cash the ♥K first: high cards from the shorter hand.", "Then the ♥Q.", "Now lead your ♥2 to North's ♥A. North's ♥J and ♥10 are winners, and you're in the right hand to take them."], "summary": "Play the high cards from the shorter hand first. If you lead the ♥2 to the ♥A early, your ♥K and ♥Q block the suit, and North's last hearts are stranded with no way to reach them."}, {"id": "1-7", "level": 1, "contract": "3N", "lead": "SK", "N": "74.AK5.KQJT3.862", "E": "952.876.A65.J754", "S": "A63.Q432.92.AKQ3", "W": "KQJT8.JT9.874.T9", "line": ["S4", "S3", "S7", "S6", "C2", "SA"], "title": "The hold-up", "intro": "West leads the ♠K against 3NT. You'll need tricks from diamonds, and the defenders hold the ♦A.", "tip": "What happens if you win the first spade, and East later wins the ♦A?", "notes": ["Don't win the first spade! Play low from both hands.", "West leads another spade. Duck again.", "Now win the ♠A. East has run out of spades."], "summary": "Holding up your Ace cuts the defenders off from each other. When East later wins the ♦A, East has no spade left to lead back, so West's long spades never take their tricks."}, {"id": "1-8", "level": 1, "contract": "4S", "lead": "CK", "N": "765.Q43.KQ6.A762", "E": "A2.8765.7532.T85", "S": "QJT98.AK2.A4.943", "W": "K43.JT9.JT98.KQJ", "line": ["CA", "C3", "D6", "DA", "D4", "DK", "DQ", "C4"], "title": "Discard a loser", "intro": "West leads the ♣K against 4♠. The opponents hold the ♠A and ♠K. When they win one, they'll be ready to cash their clubs.", "tip": "Is there a loser you can throw away before the opponents get the lead?", "notes": ["Win the ♣A in dummy.", "Lead a diamond to your ♦A.", "Lead your ♦4 to North's ♦K.", "Cash the ♦Q and throw away a losing club. Now it's safe to lead trumps."], "summary": "Get rid of a loser before you give up the lead. If you lead trumps first, the defenders win and cash two clubs. Add their two trump tricks and that's four."}, {"id": "2-1", "level": 2, "contract": "3N", "lead": "SQ", "N": "A5.AK4.AQJT.7532", "E": "8742.9832.732.K6", "S": "K63.765.654.AQ84", "W": "QJT9.QJT.K98.JT9", "line": ["S5", "SK", "D4", "DT", "C2", "CA", "D5", "DJ", "DA", "D6"], "title": "Repeat the finesse", "intro": "West leads the ♠Q against 3NT. Dummy's diamonds hold the key, but the ♦K is missing.", "tip": "If a finesse works once, you may need to take it again. Save your ways back to your hand.", "notes": ["Win the ♠K in your hand.", "Lead a diamond and finesse dummy's ♦10. It wins, so West must hold the ♦K.", "Come back to your hand with the ♣A so you can lead diamonds again.", "Finesse again with the ♦J. It wins too.", "Now the ♦A brings down West's ♦K, and all four diamonds are yours."], "summary": "When a finesse works, you may need to repeat it, so save an entry to the right hand. Cashing the ♦A after one finesse leaves West's King guarding the suit."}, {"id": "2-2", "level": 2, "contract": "3N", "lead": "HQ", "N": "742.653.A7654.83", "E": "863.872.JT.97652", "S": "AK5.AK4.832.AKQ4", "W": "QJT9.QJT9.KQ9.JT", "line": ["H3", "HA", "D2", "D4", "HK", "H5", "D3", "D5"], "title": "Duck to keep in touch", "intro": "West leads the ♥Q against 3NT. Dummy has five diamonds headed by the Ace, but no other way in.", "tip": "The ♦A is dummy's only entry. When should you use it?", "notes": ["Win the ♥A.", "Lead a diamond and play low from dummy. Let the opponents have it.", "Win the heart return with your ♥K.", "Duck a diamond again! Keep the ♦A in dummy for later."], "summary": "With ♦A 7 6 5 4 opposite ♦8 3 2 and no other entry, give up two diamond tricks first. Your last diamond then reaches the ♦A, and dummy's remaining diamonds are winners. Winning the ♦A early strands them."}, {"id": "2-3", "level": 2, "contract": "4S", "lead": "CQ", "N": "T87.765.K654.A65", "E": "432.A93.872.9843", "S": "AKQJ9.K42.A3.K72", "W": "65.QJT8.QJT9.QJT", "line": ["CA", "C2", "H5", "HK"], "title": "Lead toward the King", "intro": "West leads the ♣Q against 4♠. You must make a trick with your ♥K.", "tip": "Your King has the best chance when the player holding the Ace has to play before you.", "notes": ["Win the ♣A in dummy. You're in the right hand.", "Lead a heart from dummy toward your ♥K. East plays low, and your King wins."], "summary": "Lead toward a King, not away from it. With the Ace on your right, leading from dummy lets your King win. Leading the King yourself just lets East capture it."}, {"id": "2-4", "level": 2, "contract": "4H", "lead": "CK", "N": "5.876.K8432.6532", "E": "9876.J32.T75.T98", "S": "A432.AKQT9.A6.74", "W": "KQJT.54.QJ9.AKQJ", "line": ["C2", "C4", "C3", "C7", "C5", "H9", "SA", "S5", "S2", "H6", "D2", "DA", "S3", "H7"], "title": "Two ruffs in dummy", "intro": "West leads the ♣K against 4♥. Dummy has one spade and three trumps. You have three small spades.", "tip": "Dummy can trump two of your spades, but you'll need a way back to your hand in between.", "notes": ["West wins the first club.", "West cashes the ♣A as well.", "West leads a third club, and you trump it with the ♥9.", "Cash the ♠A.", "Trump a spade in dummy with the ♥6.", "Back to your hand with the ♦A.", "Trump your last small spade with dummy's ♥7. Now draw trumps."], "summary": "Ruff your losers in the hand with fewer trumps, and do it before drawing trumps. Drawing trumps first uses up dummy's trumps, and two spades become losers."}, {"id": "2-5", "level": 2, "contract": "4S", "lead": "CK", "N": "K876.752.K43.A65", "E": "52.643.876.T9832", "S": "AJT94.KQJ.A52.74", "W": "Q3.AT98.QJT9.KQJ", "line": ["CA", "C4", "S6", "SA", "S4", "SK"], "title": "Nine never", "intro": "West leads the ♣K against 4♠. In trumps you're missing only the ♠Q. Finesse, or play for it to drop?", "tip": "With nine trumps between you, the odds favor one approach. Which?", "notes": ["Win the ♣A.", "Cash the ♠A.", "Cash the ♠K, and West's ♠Q falls!"], "summary": "With nine cards missing the Queen, play the Ace and King. The odds favor the Queen falling. Bridge players remember it as \"eight ever, nine never\": with nine cards, never finesse."}, {"id": "2-6", "level": 2, "contract": "4S", "lead": "HK", "N": "AJT.765.A43.A632", "E": "32.943.7652.T984", "S": "K9754.A82.KQJ.75", "W": "Q86.KQJT.T98.KQJ", "line": ["H5", "HA", "S4", "ST", "D3", "DK", "S5", "SJ", "SA", "S7"], "title": "Eight ever", "intro": "West leads the ♥K against 4♠. You have eight trumps and you're missing the ♠Q.", "tip": "With only eight trumps, the odds change. Remember the saying \"eight ever, nine never.\"", "notes": ["Win the ♥A.", "Lead a spade toward dummy's ♠A J 10. West plays low, so finesse the ♠10. It wins.", "Back to your hand with the ♦K.", "Finesse again: the ♠J wins.", "Now the ♠A, and West's ♠Q falls."], "summary": "With eight cards missing the Queen, finesse. Cashing the Ace and King fails here, because West has three spades. \"Eight ever, nine never.\""}, {"id": "2-7", "level": 2, "contract": "4S", "lead": "CK", "N": "T876.AQT.K43.A76", "E": "932.765.872.T952", "S": "AKQJ.432.A65.843", "W": "54.KJ98.QJT9.KQJ", "line": ["CA", "C3", "S6", "SA", "SK", "S7", "SQ", "S8", "H2", "HT", "D3", "DA", "H3", "HQ", "HA", "H4"], "title": "The double finesse", "intro": "West leads the ♣K against 4♠. You need all three heart tricks from dummy's ♥A Q 10.", "tip": "You're missing the ♥K and ♥J. Which dummy card should you try first?", "notes": ["Win the ♣A.", "Draw trumps with the ♠A.", "Then the ♠K.", "And the ♠Q. The opponents' trumps are gone.", "Lead a heart and finesse dummy's ♥10. It wins!", "Back to your hand with the ♦A.", "Lead another heart and finesse the ♥Q.", "The ♥A brings down West's ♥K."], "summary": "With ♥A Q 10 and both the King and Jack missing, finesse the 10 first. If West holds both, you win all three tricks. Finessing the Queen first loses a trick to the Jack later."}, {"id": "2-8", "level": 2, "contract": "6H", "lead": "DQ", "N": "K85432.T98.A6.93", "E": "T7.743.K852.8764", "S": "A6.AKQJ2.743.A52", "W": "QJ9.65.QJT9.KQJT", "line": ["DA", "D3", "S2", "SA", "S6", "SK", "S3", "HJ", "HA", "H8", "HK", "H9", "H2", "HT"], "title": "Save your entry", "intro": "West leads the ♦Q against 6♥, knocking out dummy's only side entry. Dummy's long spades are your tricks.", "tip": "You'll need a way to reach dummy after the spades are set up. Look closely at your smallest trump.", "notes": ["Win the ♦A.", "Cash the ♠A.", "Lead a spade to dummy's ♠K.", "Lead a third spade. East trumps it, so overtrump with the ♥J. Keep your little ♥2!", "Draw trumps with the ♥A.", "Then the ♥K.", "Now lead the ♥2 to dummy's ♥10. You're in dummy, and the spades are all winners."], "summary": "Keep a low trump as your way back to dummy. If you ruff the third spade with the ♥2, East overruffs, and you've lost your only entry to dummy's good spades."}];
@@ -1573,10 +1809,11 @@ const JP_HANDS=8;
 let JP=null;
 function jpStore(){store.jp=Object.assign({best:0,rounds:0,hands:0,made:0,streak:0,bestStreak:0},store.jp||{});return store.jp;}
 function scoreHand(c,got){
-  const need=c.level+6;if(got<need)return -50*(need-got);
+  const need=c.level+6,d=c.dbl||0,m=d===2?4:d===1?2:1;
+  if(got<need){const u=need-got;if(!d)return -50*u;let p=0;for(let i=1;i<=u;i++)p+=i===1?100:i<=3?200:300;return -p*(d===2?2:1);}
   const per=c.strain==='N'||isMajor(c.strain)?30:20;
-  const trick=c.strain==='N'?40+30*(c.level-1):per*c.level;
-  let sc=trick+(trick>=100?300:50)+(got-need)*per;
+  const trick=(c.strain==='N'?40+30*(c.level-1):per*c.level)*m;
+  let sc=trick+(trick>=100?300:50)+(got-need)*(d?(d===2?200:100):per)+(d===2?100:d===1?50:0);
   if(c.level===6)sc+=500;if(c.level===7)sc+=1000;return sc;
 }
 function startJP(){
@@ -1588,7 +1825,7 @@ function startJP(){
     [{label:'Deal the first hand ▶',cls:'primary',fn:()=>{JP={n:0,total:0,made:0,over:false};jpDeal();}},{label:'Back to Home',fn:renderHome}]);
 }
 function jpDeal(again){
-  gen++;closeOverlay();DD.reset();
+  gen++;hidePop();closeOverlay();DD.reset();
   if(!JP.inHand)JP.n++;JP.inHand=true;
   const hands=makePracticeDeal(23,34),dealer=SEATS[Math.floor(Math.random()*4)];
   T={mode:'jp',orig:hands,hands:{N:hands.N.slice(),E:hands.E.slice(),S:hands.S.slice(),W:hands.W.slice()},dealer,auction:[],turn:dealer,phase:'bid',contract:null,play:null,undo:[],suggest:null,glow:null,firstTry:true,revealed:false,busy:false,auto:false,watch:false,log:[],bbOpts:{level:null}};
@@ -1597,8 +1834,8 @@ function jpDeal(again){
 }
 
 function jpTurnMsg(){
-  const nb=T.auction.filter(a=>a.seat==='N');const last=nb[nb.length-1];
-  let m=last?(last.bid==='P'?'Partner passed. ':`Partner bid <b>${bidText(last.bid)}</b>: ${last.means}. `):'You are the first of your side to bid. ';
+  const rc=recentCalls();let m=rc.map(callNote).join('');
+  if(!T.auction.some(x=>isNS(x.seat)&&x.bid!=='P')&&!rc.some(x=>x.seat==='N'))m+='You are the first of your side to bid. ';
   coach(m+'Your bid?');
 }
 function jpPassOut(){
@@ -1608,22 +1845,25 @@ function jpPassOut(){
   else overlay(h,[{label:'Next hand ▶',cls:'primary',fn:()=>jpDeal()},{label:'Back to Home',fn:renderHome}]);
 }
 function jpEnd(){
-  const c=T.contract,P=T.play,need=c.level+6,got=P.tricks.NS,J=jpStore();T.phase='done';
-  const pts=scoreHand(c,got);JP.total+=pts;J.hands++;JP.inHand=false;
-  if(got>=need){JP.made++;J.made++;J.streak++;J.bestStreak=Math.max(J.bestStreak,J.streak);sfx.win();}else{J.streak=0;sfx.soft();}
+  const c=T.contract,P=T.play,J=jpStore();T.phase='done';const ct=colorize(contractText(c));
+  const dt=T.defending?P.tricks.EW:P.tricks.NS,need=c.level+6,pts=T.defending?-scoreHand(c,dt):scoreHand(c,dt);
+  JP.total+=pts;J.hands++;JP.inHand=false;const good=pts>0;
+  if(good){JP.made++;J.made++;J.streak++;J.bestStreak=Math.max(J.bestStreak,J.streak);sfx.win();}else{J.streak=0;sfx.soft();}
   save();renderTable();
-  const over=got-need;
-  let h=got>=need?`<h2>Made ${colorize(bidText(c.bid))} <span style="color:var(--good)">+${pts}</span></h2><p>You took ${got} tricks${over?` (${over} overtrick${over>1?'s':''})`:''}.</p>`
-                 :`<h2>Down ${need-got} <span style="color:var(--soft)">${pts}</span></h2><p>You took ${got} of the ${need} tricks you needed in ${colorize(bidText(c.bid))}.</p>`;
+  const over=dt-need,sc=`<span style="color:var(--${good?'good':'soft'})">${pts>0?'+':''}${pts}</span>`;let h;
+  if(T.defending)h=dt>=need?`<h2>${SEATNAME[c.declarer]} made ${ct} ${sc}</h2><p>You and partner took ${P.tricks.NS} tricks; you needed ${8-c.level} to beat it.</p>`
+                             :`<h2>Defeated by ${need-dt}! ${sc}</h2><p>${SEATNAME[c.declarer]} needed ${need} tricks in ${ct} and took only ${dt}.</p>`;
+  else h=dt>=need?`<h2>Made ${ct} ${sc}</h2><p>You took ${dt} tricks${over?` (${over} overtrick${over>1?'s':''})`:''}.</p>`
+                 :`<h2>Down ${need-dt} ${sc}</h2><p>You took ${dt} of the ${need} tricks you needed in ${ct}.</p>`;
   h+=`<p>Round score: <b>${JP.total.toLocaleString()}</b> after ${JP.n} of ${JP_HANDS} hands.</p>`;
-  if(J.streak>1)h+=`<p style="color:var(--muted)">${J.streak} contracts made in a row!</p>`;
+  if(J.streak>1)h+=`<p style="color:var(--muted)">${J.streak} good results in a row!</p>`;
   if(JP.n>=JP_HANDS){JP.over=true;overlay(h,[{label:'See round results ▶',cls:'primary',fn:jpRoundEnd}]);}
   else overlay(h,[{label:'Next hand ▶',cls:'primary',fn:()=>jpDeal()},{label:'Back to Home',fn:renderHome}]);
 }
 function jpRoundEnd(){
   const J=jpStore();J.rounds++;const isBest=JP.total>J.best||J.rounds===1;if(isBest)J.best=JP.total;save();
   if(isBest)sfx.win();
-  overlay(`<h2>Round complete!</h2><p style="font-size:44px;font-family:'Playfair Display',serif;color:var(--baize-d);margin:6px 0">${JP.total.toLocaleString()} points</p><p>Contracts made: <b>${JP.made} of ${JP_HANDS}</b></p><p>${isBest?'<b>That\'s your best round yet!</b>':`Your best round: <b>${J.best.toLocaleString()}</b> points`}</p>${J.bestStreak>1?`<p style="color:var(--muted)">Best streak of contracts made in a row: ${J.bestStreak}</p>`:''}`,
+  overlay(`<h2>Round complete!</h2><p style="font-size:44px;font-family:'Playfair Display',serif;color:var(--baize-d);margin:6px 0">${JP.total.toLocaleString()} points</p><p>Good results: <b>${JP.made} of ${JP_HANDS}</b></p><p>${isBest?'<b>That\'s your best round yet!</b>':`Your best round: <b>${J.best.toLocaleString()}</b> points`}</p>${J.bestStreak>1?`<p style="color:var(--muted)">Best streak of good results: ${J.bestStreak}</p>`:''}`,
     [{label:'Play another round ▶',cls:'primary',fn:()=>{JP={n:0,total:0,made:0,over:false};jpDeal();}},{label:'Back to Home',fn:renderHome}]);
 }
 
@@ -1633,36 +1873,39 @@ function renderTable(){
   const P=T.play,ph=T.phase,c=T.contract;
   const bar=$('tBar');
   if(T.mode==='ch')bar.innerHTML=`<span>Challenge <b>${T.deal.id}</b></span><span><span class="pill">${colorize(bidText(c.bid))}</span> by South</span><span>Need <b>${c.level+6}</b></span><span>Won <b>${P.tricks.NS}</b> · Lost <b>${P.tricks.EW}</b></span>`;
-  else if(T.mode==='jp')bar.innerHTML=`<span>Hand <b>${JP.n}</b> of ${JP_HANDS}</span>`+(c?`<span><span class="pill">${colorize(bidText(c.bid))}</span> by ${SEATNAME[c.declarer]}</span><span>Won <b>${P.tricks.NS}</b> · Lost <b>${P.tricks.EW}</b></span>`:'<span><b>Bidding</b></span>')+`<span class="sc">Score <b>${JP.total.toLocaleString()}</b></span>`;
+  else if(T.mode==='jp')bar.innerHTML=`<span>Hand <b>${JP.n}</b>/${JP_HANDS}</span>`+(c?`<span class="bidsBtn" id="bidsBtn">📋 Bidding</span><span><span class="pill">${colorize(pillText(c))}</span> by ${SEATNAME[c.declarer]}</span><span>Won <b>${P.tricks.NS}</b> · Lost <b>${P.tricks.EW}</b></span>`:'<span><b>Bidding</b></span>')+`<span class="sc">Score <b>${JP.total.toLocaleString()}</b></span>`;
   else if(ph==='bid')bar.innerHTML=`<span><b>Bidding</b></span><span>Dealer: <b>${SEATNAME[T.dealer]}</b></span>`;
-  else bar.innerHTML=`<span>Contract <span class="pill">${colorize(bidText(c.bid))}</span> by ${SEATNAME[c.declarer]}</span><span>Need <b>${c.level+6}</b></span><span>${T.watch?'<span class="pill">Coach playing</span> ':''}Won: <b>${P.tricks.NS}</b> · Lost: <b>${P.tricks.EW}</b></span>`;
+  else bar.innerHTML=`<span class="bidsBtn" id="bidsBtn">📋 Bidding</span><span><span class="pill">${colorize(pillText(c))}</span> by ${SEATNAME[c.declarer]}</span><span>${T.defending?'Beat it: <b>'+needNS()+'</b>':'Need <b>'+needNS()+'</b>'}</span><span>${T.watch?'<span class="pill">Coach</span> ':''}Won <b>${P.tricks.NS}</b> · Lost <b>${P.tricks.EW}</b></span>`;
+  wireBidsBtn();
   const inPlay=ph==='play'||ph==='done';
   const hands=inPlay?P.hands:T.hands;
-  const active=s=>ph==='play'&&!T.paused&&!T.busy&&!T.auto&&!P.done&&P.turn===s&&P.trick.length<4;
-  const nUp=inPlay&&T.revealed;
+  const active=s=>ph==='play'&&!T.paused&&!T.busy&&!T.auto&&!P.done&&P.turn===s&&P.trick.length<4&&humanSeat(s);
+  const nUp=inPlay&&T.revealed&&!T.defending;
   renderHand($('nHand'),sortHand(hands.N,c&&c.strain),{faceDown:!nUp,legal:active('N')?legalCards(P,'N'):null,onTap:c=>tapCard('N',c),onBad:badCard,suggest:T.suggest&&P.turn==='N'?T.suggest:null});
   renderHand($('sHand'),sortHand(hands.S,c&&c.strain),{legal:active('S')?legalCards(P,'S'):null,onTap:c=>tapCard('S',c),onBad:badCard,suggest:T.suggest&&P.turn==='S'?T.suggest:null});
   const lab=s=>{
     let t=s==='S'?'South (you)':'North (partner)';
     if(c&&c.declarer===s&&ph!=='bid')t+=' <span class="tag">Declarer</span>';
+    if(s==='S'&&T.defending&&ph!=='bid')t+=' <span class="tag">Defending</span>';
     if(ph==='bid'&&T.turn===s)t+=' <span class="turn">Bidding…</span>';
     if(active(s))t+=` <span class="turn">▶ Your turn: play ${s==='S'?'from your hand':'from North'}</span>`;
     return t;
   };
   $('nLabel').innerHTML=lab('N');$('sLabel').innerHTML=lab('S');
-  const side=s=>{const n=hands[s].length;let backs='';for(let i=0;i<Math.min(4,Math.ceil(n/3));i++)backs+=`<i style="left:${i*7}px;top:${i*2}px"></i>`;
-    return `<div class="nm">${SEATNAME[s]}</div><div class="backs">${backs}</div><div class="cnt">${n} cards</div>${(ph==='bid'&&T.turn===s)||(ph==='play'&&P.turn===s&&!T.busy&&!P.done)?'<span class="turn" style="font-size:17px">thinking…</span>':''}`;};
+  const side=s=>{const n=hands[s].length;let backs='';
+    if(inPlay&&T.defending&&T.revealed&&s===partnerOf(c.declarer))return sideTxt(s,hands[s]).replace('</div>',' · dummy</div>')+(ph==='play'&&P.turn===s&&!T.busy&&!P.done?'<span class="turn" style="font-size:17px">thinking…</span>':'');for(let i=0;i<Math.min(4,Math.ceil(n/3));i++)backs+=`<i style="left:${i*7}px;top:${i*2}px"></i>`;
+    return `<div class="nm">${SEATNAME[s]}${c&&ph!=='bid'&&c.declarer===s?'<br><span class="tag">Declarer</span>':''}</div><div class="backs">${backs}</div><div class="cnt">${n} cards</div>${(ph==='bid'&&T.turn===s)||(ph==='play'&&P.turn===s&&!T.busy&&!P.done)?'<span class="turn" style="font-size:17px">thinking…</span>':''}`;};
   $('wBox').innerHTML=side('W');$('eBox').innerHTML=side('E');
   const ctr=$('center');ctr.innerHTML='';
-  if(ph==='bid'||ph==='ready'){ctr.innerHTML=auctionHtml();}
+  if(ph==='bid'||ph==='ready'){ctr.innerHTML=auctionHtml();wireAuctionTips(ctr);}
   else{
-    if(!P.trick.length&&!P.done){ctr.innerHTML=`<div class="tmsg">${isNS(P.turn)?(P.turn==='S'?'Your lead':'Lead from North'):SEATNAME[P.turn]+' to lead'}</div>`;}
+    if(!P.trick.length&&!P.done){ctr.innerHTML=`<div class="tmsg">${humanSeat(P.turn)?(P.turn==='S'?'Your lead':'Lead from North'):(P.turn==='N'?'North':SEATNAME[P.turn])+' to lead'}</div>`;}
     const w=P.trick.length===4?trickWinner(P.trick,P.trump):null;
     for(const t of P.trick){const sl=document.createElement('div');sl.className='tslot '+t.seat;const ce=cardEl(t.card);if(w&&w.seat===t.seat)ce.classList.add('win');sl.appendChild(ce);ctr.appendChild(sl);}
   }
   const ctl=$('tControls');ctl.innerHTML='';
   if(ph==='bid'){
-    const o=T.bbOpts;o.lastBid=lastBid(T.auction);o.enabled=T.turn==='S';o.glow=T.glow;o.onBid=userBid;o.onPreview=previewBid;o.onCancel=()=>{if(T.mode==='jp')jpTurnMsg();else userTurnMsg();};if(T.turn!=='S')o.pending=null;
+    const o=T.bbOpts;o.lastBid=lastBid(T.auction);o.enabled=T.turn==='S';o.canX=T.turn==='S'&&isLegal('X',T.auction);o.canXX=T.turn==='S'&&isLegal('XX',T.auction);o.glow=T.glow;o.onBid=userBid;o.onPreview=previewBid;o.onCancel=()=>{if(T.mode==='jp')jpTurnMsg();else userTurnMsg();};if(T.turn!=='S')o.pending=null;
     o.extra=[mkBtn('💡 Hint','brass',bidHint,T.turn!=='S')];
     bidBox(ctl,o);
   }else if(ph==='ready'){
@@ -1679,7 +1922,7 @@ function renderTable(){
     ctl.appendChild(r2);
   }else{
     const r=document.createElement('div');r.className='crow';
-    const myTurn=ph==='play'&&isNS(P.turn)&&!T.busy&&!T.auto&&!P.done;
+    const myTurn=ph==='play'&&humanSeat(P.turn)&&!T.busy&&!T.auto&&!P.done;
     r.appendChild(mkBtn('💡 Hint','brass',playHint,!myTurn));
     r.appendChild(mkBtn('↶ Undo','',undo,!T.undo.length||T.auto||ph==='done'));
     ctl.appendChild(r);
@@ -1689,15 +1932,32 @@ function renderTable(){
     ctl.appendChild(r2);
   }
 }
-function auctionHtml(){
+function pillText(c){return bidText(c.bid)+(c.dbl===2?' XX':c.dbl===1?' X':'');}
+function bidShort(b){return b==='X'?'Dbl':b==='XX'?'Rdbl':bidText(b);}
+function auctionHtml(full){
   const order=['W','N','E','S'];const cells=[];
   for(let i=0;i<order.indexOf(T.dealer);i++)cells.push('');
-  T.auction.forEach(a=>cells.push(`<span class="${isNS(a.seat)?'ns':'ew'}">${colorize(bidText(a.bid))}</span>`));
-  if(T.phase==='bid')cells.push('<span class="q">?</span>');
+  T.auction.forEach((a,i)=>cells.push(`<span class="ab ${isNS(a.seat)?'ns':'ew'}" data-i="${i}">${colorize(bidShort(a.bid))}</span>`));
+  if(T.phase==='bid'&&!full)cells.push('<span class="q">?</span>');
   const rows=[];for(let i=0;i<cells.length;i+=4)rows.push(cells.slice(i,i+4));
-  const shown=rows.slice(-5);
-  return `<div class="auction"><table><tr><th>West</th><th>North</th><th>East</th><th>South</th></tr>${shown.map(r=>'<tr>'+[0,1,2,3].map(k=>`<td>${r[k]||''}</td>`).join('')+'</tr>').join('')}</table></div>`;
+  const shown=full?rows:rows.slice(-5);
+  return `<div class="auction"><table><tr><th>West</th><th>North</th><th>East</th><th>South</th></tr>${shown.map(r=>'<tr>'+[0,1,2,3].map(k=>`<td>${r[k]||''}</td>`).join('')+'</tr>').join('')}</table><div class="atip">Point to (or tap) a bid to see what it means.</div></div>`;
 }
+function wireAuctionTips(root){
+  const tip=root.querySelector('.atip');if(!tip)return;const dflt=tip.innerHTML;
+  root.querySelectorAll('.ab').forEach(el=>{const a=T.auction[+el.dataset.i];if(!a)return;
+    const who=a.seat==='S'?'You':a.seat==='N'?'Partner':SEATNAME[a.seat];
+    const m=a.means&&a.means!=='Pass'?a.means:(a.bid==='P'?'':'no standard meaning');
+    const txt=`${who}: <b>${colorize(bidText(a.bid))}</b>${m?' = '+colorize(m):''}`;
+    el.onmouseenter=()=>{tip.innerHTML=txt;tip.classList.add('on');};el.onclick=el.onmouseenter;
+    el.onmouseleave=()=>{tip.innerHTML=dflt;tip.classList.remove('on');};});
+}
+let popTimer=null;
+function showPop(){clearTimeout(popTimer);const p=$('auctionPop');p.innerHTML=auctionHtml(true);wireAuctionTips(p);p.classList.add('on');}
+function hidePopSoon(){clearTimeout(popTimer);popTimer=setTimeout(()=>$('auctionPop').classList.remove('on'),250);}
+function hidePop(){clearTimeout(popTimer);$('auctionPop').classList.remove('on');}
+function wireBidsBtn(){const b=$('bidsBtn');if(!b)return;b.onmouseenter=showPop;b.onmouseleave=hidePopSoon;b.onclick=()=>{$('auctionPop').classList.contains('on')?hidePop():showPop();};
+  const p=$('auctionPop');p.onmouseenter=()=>clearTimeout(popTimer);p.onmouseleave=hidePopSoon;}
 
 /* help / intro */
 function showHelp(){
@@ -1707,6 +1967,7 @@ function showHelp(){
   <h4>Answering 1 of a suit</h4><div>Under 6: Pass<br>3+ cards in partner's major: raise to 2 (6–9) or 3 (10–12); with 13+, new suit first, then game<br>New suit at the 1 level: 6+ &nbsp;·&nbsp; at the 2 level: 10+<br>1NT: 6–10 &nbsp;·&nbsp; 2NT: 11–12 &nbsp;·&nbsp; 3NT: 13–15</div>
   <h4>Answering 1NT</h4><div>0–7: Pass, or bid 2♦/2♥/2♠ with a 5+ card suit<br>8–9: 2NT &nbsp;·&nbsp; 10–15: 3NT<br>2♣ (Stayman): 8+ points with a 4-card major</div>
   <h4>Asking for aces</h4><div>Blackwood 4NT (after a suit is bid): 5♣ 0 or 4 · 5♦ 1 · 5♥ 2 · 5♠ 3. Then 5NT asks for kings.<br>Gerber 4♣ (over partner's notrump): 4♦ 0 or 4 · 4♥ 1 · 4♠ 2 · 4NT 3. Then 5♣ asks for kings.</div>
+  <h4>Competing</h4><div>Overcall: good 5+ suit, 8–16 (11+ at the 2 level) · 1NT overcall: 15–18 with a stopper · Takeout double: 12+, short in their suit</div>
   <h4>Modern style</h4><div>Weak twos: 2♦/2♥/2♠ = six cards, 5–10 points. Jacoby over 1NT: 2♦ = hearts, 2♥ = spades.</div>`)}</div>`,[{label:'Close',cls:'primary'}]);
 }
 function showIntro(){
